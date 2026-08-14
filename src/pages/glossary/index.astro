@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { ecosystem } from '../../data/entity';
+
+const title = '术语表 | 遗传工具术语';
+const description = '赛鸽遗传工具常用术语表，涵盖基因型、表型、等位基因、Punnett 方格、孟德尔遗传等核心概念。';
+
+const pageUrl = `${ecosystem.tools}/glossary/`;
+
+const terms = [
+  { term: '基因型', en: 'Genotype', def: '个体在特定基因位点上携带的等位基因组合。' },
+  { term: '表型', en: 'Phenotype', def: '个体表现出的可观察特征，由基因型与环境共同决定。' },
+  { term: '等位基因', en: 'Allele', def: '同一基因座位上基因的不同版本。' },
+  { term: '纯合子', en: 'Homozygote', def: '某基因位点上两个等位基因相同的个体（如 AA、aa）。' },
+  { term: '杂合子', en: 'Heterozygote', def: '某基因位点上两个等位基因不同的个体（如 Aa）。' },
+  { term: '显性', en: 'Dominant', def: '等位基因在杂合状态下即可表达的性状。' },
+  { term: '隐性', en: 'Recessive', def: '等位基因仅在纯合状态下才表达的性状。' },
+  { term: 'Punnett 方格', en: 'Punnett Square', def: '用于预测子代基因型与表型概率的遗传学图示工具。' },
+  { term: '孟德尔遗传', en: 'Mendelian Inheritance', def: '由孟德尔揭示的遗传规律，包括分离定律与自由组合定律。' },
+  { term: '自由组合定律', en: 'Law of Independent Assortment', def: '不同基因座位的等位基因在配子形成时独立分配。' },
+  { term: 'STR 标记', en: 'Short Tandem Repeat', def: '短串联重复序列，重复次数个体间高度变异，用于亲缘鉴定。' },
+  { term: '亲缘相容性', en: 'Parentage Consistency', def: '子代每个等位基因都能在父母基因型中找到来源的程度。' },
+  { term: 'DNA 身份证', en: 'DNA Identity', def: '基于 STR 标记构建的个体特异性遗传指纹图谱。' },
+  { term: '证书验证', en: 'Certificate Verification', def: '通过证书编号查询验证 DNA 证书真实性与状态的过程。' },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'DefinedTermSet',
+    name: '赛鸽遗传工具术语表',
+    url: pageUrl,
+    inLanguage: 'zh-CN',
+  },
+];
+---
+
+<BaseLayout {title} {description} canonical="/glossary/" jsonLd={jsonLd}>
+  <Header />
+  <main id="main">
+    <section class="bg-gradient-to-br from-brand-900 to-brand-700 py-16 text-white">
+      <div class="container-x">
+        <nav class="text-sm text-brand-100"><a href="/" class="hover:text-white">首页</a> / <span class="text-white">术语表</span></nav>
+        <h1 class="mt-4 text-4xl font-bold">术语表</h1>
+      </div>
+    </section>
+    <section class="container-x py-16">
+      <div class="mx-auto max-w-3xl divide-y divide-gray-100">
+        {terms.map((t) => (
+          <div class="py-5">
+            <h2 class="text-lg font-bold text-gray-900">
+              {t.term}
+              {t.en && <span class="ml-2 text-sm font-normal text-gray-500">{t.en}</span>}
+            </h2>
+            <p class="mt-1 text-gray-700">{t.def}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
