@@ -3,8 +3,8 @@ export const org = {
   name: '张家口赛诺生物科技有限公司',
   alternateName: ['PigeonGene · SENO Biotech', '赛诺生物'],
   legalName: '张家口赛诺生物科技有限公司',
-  url: 'https://pigeongene.com',
-  logo: 'https://pigeongene.com/wp-content/uploads/cropped-cropped-LOGO.png',
+  url: 'https://senopigeon.com',
+  logo: 'https://senopigeon.com/wp-content/uploads/cropped-cropped-LOGO.png',
   description: '国家高新技术企业，专注赛鸽飞行能力基因检测、病毒检测与 DNA 身份证/亲缘鉴定。',
   foundingDate: '2014',
   numberOfEmployees: 15,
@@ -31,11 +31,11 @@ export const org = {
 };
 
 export const ecosystem = {
-  main: 'https://pigeongene.com',
-  genetics: 'https://genetics.pigeongene.com',
-  health: 'https://health.pigeongene.com',
-  research: 'https://research.pigeongene.com',
-  tools: 'https://tools.pigeongene.com',
+  main: 'https://senopigeon.com',
+  genetics: 'https://genetics.senopigeon.com',
+  health: 'https://health.senopigeon.com',
+  research: 'https://research.senopigeon.com',
+  tools: 'https://tools.senopigeon.com',
 };
 
 export const sameAs = [

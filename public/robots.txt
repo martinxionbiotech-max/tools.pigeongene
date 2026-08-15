@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://tools.pigeongene.com/sitemap-index.xml
+Sitemap: https://tools.senopigeon.com/sitemap-index.xml

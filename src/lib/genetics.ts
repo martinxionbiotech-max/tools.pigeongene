@@ -199,7 +199,7 @@ export interface CertificateResult {
   };
 }
 
-// 演示用的证书数据库（说明：真实系统应查询 registry.pigeongene.com）
+// 演示用的证书数据库（说明：真实系统应查询 registry.senopigeon.com）
 const demoCertificates: Record<string, CertificateResult['certificate']> = {
   'PG-DNA-2026-000001': {
     certificateNumber: 'PG-DNA-2026-000001',
