@@ -1,8 +1,8 @@
 // 统一实体数据 —— 四站共享的 PigeonGene 实体定义
 export const org = {
-  name: '张家口森诺生物科技有限公司',
-  alternateName: ['PigeonGene · SENO Biotech', '森诺生物'],
-  legalName: '张家口森诺生物科技有限公司',
+  name: '张家口赛诺生物科技有限公司',
+  alternateName: ['PigeonGene · SENO Biotech', '赛诺生物'],
+  legalName: '张家口赛诺生物科技有限公司',
   url: 'https://pigeongene.com',
   logo: 'https://pigeongene.com/wp-content/uploads/cropped-cropped-LOGO.png',
   description: '国家高新技术企业，专注赛鸽飞行能力基因检测、病毒检测与 DNA 身份证/亲缘鉴定。',
