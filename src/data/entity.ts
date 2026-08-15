@@ -26,8 +26,8 @@ export const org = {
     postalCode: '075000',
     streetAddress: '桥东区北硅谷 3 号楼',
   },
-  email: 'martin@dnatestingexperts.com',
-  telephone: '+86-13323237275',
+  email: 'martin@senobiocorp.com',
+  telephone: '+86 13323237275',
 };
 
 export const ecosystem = {
