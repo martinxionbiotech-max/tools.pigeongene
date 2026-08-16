@@ -6,7 +6,7 @@ import { geneDatabase } from '../../data/genes';
 import { ecosystem } from '../../data/entity';
 
 const title = '基因查询';
-const description = '输入基因代码（如 LDHA、MSTN），查询赛鸽性能相关基因的功能、已知关联、遗传标记与参考文献。';
+const description = '输入基因代码（如 LDHA）、英文名（如 Myostatin）或中文名（如乳酸脱氢酶），查询赛鸽性能相关基因的功能、已知关联、遗传标记与参考文献。';
 
 const pageUrl = `${ecosystem.tools}/gene-lookup/`;
 
@@ -30,8 +30,6 @@ const jsonLd = [
   },
 ];
 
-// 将基因数据转为 JSON 供客户端查询
-const geneJson = JSON.stringify(geneDatabase);
 ---
 
 <BaseLayout {title} {description} canonical="/gene-lookup/" jsonLd={jsonLd}>
@@ -44,24 +42,30 @@ const geneJson = JSON.stringify(geneDatabase);
           <a href="/" class="hover:text-white">首页</a> / <span class="text-white">基因查询</span>
         </nav>
         <h1 class="mt-4 text-4xl font-bold">基因查询</h1>
-        <p class="mt-4 max-w-2xl text-lg text-brand-100">输入基因代码查询赛鸽性能相关基因。</p>
+        <p class="mt-4 max-w-2xl text-lg text-brand-100">支持按基因代码、英文名或中文名查询赛鸽性能相关基因。</p>
       </div>
     </section>
 
     <section class="container-x py-16">
       <div class="mx-auto max-w-2xl">
-        <label for="gene-input" class="block text-sm font-semibold text-gray-900">输入基因代码</label>
+        <label for="gene-input" class="block text-sm font-semibold text-gray-900">输入基因代码、英文名或中文名</label>
         <div class="mt-2 flex gap-2">
           <input
             id="gene-input"
             type="text"
-            class="tool-input uppercase"
-            placeholder="例如：LDHA、MSTN、DRD4"
+            class="tool-input"
+            placeholder="例如：LDHA、Myostatin、乳酸脱氢酶"
             autocomplete="off"
             list="gene-list"
           />
           <datalist id="gene-list">
-            {geneDatabase.map((g) => <option value={g.code}>{g.name}</option>)}
+            {geneDatabase.map((g) => (
+              <Fragment>
+                <option value={g.code}>{g.name} · {g.en}</option>
+                <option value={g.name}>{g.code} · {g.en}</option>
+                <option value={g.en}>{g.code} · {g.name}</option>
+              </Fragment>
+            ))}
           </datalist>
           <button id="gene-search" class="btn-primary shrink-0">查询</button>
         </div>
@@ -105,7 +109,7 @@ const geneJson = JSON.stringify(geneDatabase);
         </div>
 
         <div id="gene-notfound" class="mt-8 hidden rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-800">
-          <strong>未找到该基因。</strong>请检查代码是否正确（如 LDHA、MSTN、DRD4、CRY1、LRP8、GSR、CASK、F-KER）。
+          <strong>未找到该基因。</strong>可尝试输入基因代码（LDHA、MSTN、DRD4、CRY1、LRP8、GSR、CASK、F-KER）、英文名（如 Myostatin）或中文名（如乳酸脱氢酶）。
         </div>
 
         <div class="mt-10">
@@ -123,15 +127,16 @@ const geneJson = JSON.stringify(geneDatabase);
   <Footer />
 </BaseLayout>
 
-<script define:vars={{ geneDatabase }}>
-  const geneData = geneDatabase;
+<script>
+  import { geneDatabase } from '../../data/genes';
+  import { searchGene } from '../../lib/geneSearch';
+
   const input = document.getElementById('gene-input');
   const result = document.getElementById('gene-result');
   const notfound = document.getElementById('gene-notfound');
 
   function lookup(query) {
-    const q = query.trim().toUpperCase();
-    const gene = geneData.find((g) => g.code === q || g.en.toUpperCase() === q);
+    const gene = searchGene(query, geneDatabase);
     if (gene) {
       result.classList.remove('hidden');
       notfound.classList.add('hidden');

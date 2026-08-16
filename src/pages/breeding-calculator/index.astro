@@ -49,14 +49,14 @@ const jsonLd = [
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <label for="parent-a" class="block text-sm font-semibold text-gray-900">亲本 A 基因型</label>
-            <input id="parent-a" type="text" class="tool-input mt-2 uppercase" value="AaBb" placeholder="如 AaBb" maxlength="4" />
+            <input id="parent-a" type="text" class="tool-input mt-2" value="AaBb" placeholder="如 AaBb" maxlength="4" autocomplete="off" />
           </div>
           <div>
             <label for="parent-b" class="block text-sm font-semibold text-gray-900">亲本 B 基因型</label>
-            <input id="parent-b" type="text" class="tool-input mt-2 uppercase" value="AaBb" placeholder="如 AaBb" maxlength="4" />
+            <input id="parent-b" type="text" class="tool-input mt-2" value="AaBb" placeholder="如 AaBb" maxlength="4" autocomplete="off" />
           </div>
         </div>
-        <p class="mt-2 text-xs text-gray-500">格式：4 个字母，两个基因位点各两个等位基因（如 AaBb）。</p>
+        <p class="mt-2 text-xs text-gray-500">格式：4 个英文字母，两个基因位点各两个等位基因（如 AaBb）。支持大小写混写，AaBb 与 aabb 会按原字母含义计算。</p>
 
         <button id="calculate" class="btn-primary mt-4 w-full">计算</button>
 
@@ -79,50 +79,39 @@ const jsonLd = [
 </BaseLayout>
 
 <script>
-  function gametes(genotype) {
-    const g1 = [genotype[0], genotype[1]];
-    const g2 = [genotype[2], genotype[3]];
-    const result = [];
-    for (const a of g1) for (const b of g2) result.push(a + b);
-    return result;
-  }
+  import { dihybridCross } from '../../lib/genetics';
 
-  function dihybrid(parentA, parentB) {
-    const ga = gametes(parentA);
-    const gb = gametes(parentB);
-    const combos = [];
-    for (const a of ga) {
-      for (const b of gb) {
-        const locus1 = [a[0], b[0]].sort().join('');
-        const locus2 = [a[1], b[1]].sort().join('');
-        combos.push(locus1 + locus2);
-      }
-    }
-    const counts = {};
-    for (const c of combos) counts[c] = (counts[c] || 0) + 1;
-    return Object.entries(counts).sort((x, y) => x[0].localeCompare(y[0])).map(([g, c]) => ({ genotype: g, pct: ((c / 16) * 100).toFixed(1) + '%' }));
-  }
+  const parentA = document.getElementById('parent-a');
+  const parentB = document.getElementById('parent-b');
+  const result = document.getElementById('result');
+  const errorBox = document.getElementById('error');
 
-  document.getElementById('calculate').addEventListener('click', () => {
-    const a = document.getElementById('parent-a').value.trim().toUpperCase();
-    const b = document.getElementById('parent-b').value.trim().toUpperCase();
-    const err = document.getElementById('error');
-    const result = document.getElementById('result');
+  function calculate() {
+    try {
+      const outcome = dihybridCross(parentA.value, parentB.value);
 
-    if (a.length !== 4 || b.length !== 4 || !/^[A-Za-z]{4}$/.test(a) || !/^[A-Za-z]{4}$/.test(b)) {
-      err.textContent = '请输入正确的双基因型格式（4 个字母，如 AaBb）。';
-      err.classList.remove('hidden');
+      document.getElementById('results').innerHTML = outcome.offspring.map((item) =>
+        `<div class="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
+          <span class="font-mono font-semibold text-gray-900">${item.genotype}</span>
+          <span class="font-bold text-brand-700">${item.percentage}</span>
+        </div>`
+      ).join('');
+
+      result.classList.remove('hidden');
+      errorBox.classList.add('hidden');
+    } catch (error) {
+      errorBox.textContent = error instanceof Error ? error.message : '输入有误，请检查后重试。';
+      errorBox.classList.remove('hidden');
       result.classList.add('hidden');
-      return;
     }
+  }
 
-    const offspring = dihybrid(a, b);
-    document.getElementById('results').innerHTML = offspring.map((o) =>
-      `<div class="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2"><span class="font-mono font-semibold text-gray-900">${o.genotype}</span><span class="font-bold text-brand-700">${o.pct}</span></div>`
-    ).join('');
-    result.classList.remove('hidden');
-    err.classList.add('hidden');
+  document.getElementById('calculate').addEventListener('click', calculate);
+  [parentA, parentB].forEach((input) => {
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') calculate();
+    });
   });
 
-  document.getElementById('calculate').click();
+  calculate();
 </script>

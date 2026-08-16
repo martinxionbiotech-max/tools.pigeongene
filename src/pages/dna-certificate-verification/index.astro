@@ -3,11 +3,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { ecosystem } from '../../data/entity';
+import { demoCertificates } from '../../data/certificates';
 
 const title = 'DNA 证书验证';
-const description = '输入 DNA 证书编号，验证证书状态、DNA ID 与检测类型。找不到证书时明确返回"未找到"，绝不猜测。';
+const description = '输入 DNA 证书编号，验证证书状态、DNA ID 与检测类型。找不到证书时明确返回“未找到”，绝不猜测。';
 
 const pageUrl = `${ecosystem.tools}/dna-certificate-verification/`;
+
+const demoNumbers = Object.keys(demoCertificates);
 
 const jsonLd = [
   {
@@ -48,16 +51,30 @@ const jsonLd = [
       <div class="mx-auto max-w-2xl">
         <label for="cert-input" class="block text-sm font-semibold text-gray-900">证书编号</label>
         <div class="mt-2 flex gap-2">
-          <input id="cert-input" type="text" class="tool-input uppercase" placeholder="例如：PG-DNA-2026-000001" />
+          <input id="cert-input" type="text" class="tool-input" placeholder="例如：PG-DNA-2026-000001" autocomplete="off" />
           <button id="verify" class="btn-primary shrink-0">验证</button>
         </div>
-        <p class="mt-2 text-xs text-gray-500">演示编号：PG-DNA-2026-000001、PG-DNA-2026-000002</p>
+
+        <div class="mt-3 rounded-lg bg-amber-50 p-4 text-sm text-amber-900">
+          <strong>演示数据说明：</strong>本页面仅包含用于功能演示的模拟证书数据，不连接真实检测数据库。实际查询请以检测机构出具的正式报告为准。
+        </div>
+
+        <div class="mt-4">
+          <p class="text-sm font-semibold text-gray-900">可验证的演示编号</p>
+          <div class="mt-2 flex flex-wrap gap-2">
+            {demoNumbers.map((number) => (
+              <button type="button" class="demo-cert rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-700 transition hover:border-brand-300 hover:text-brand-700" data-cert={number}>
+                {number}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div id="result-found" class="mt-8 hidden">
           <div class="card border-green-200">
             <div class="flex items-center gap-2">
               <span class="text-2xl">✅</span>
-              <h2 class="text-lg font-bold text-green-700">证书有效</h2>
+              <h2 id="result-title" class="text-lg font-bold text-green-700">证书有效</h2>
             </div>
             <dl class="mt-4 space-y-3 text-sm">
               <div class="flex justify-between"><dt class="text-gray-600">证书编号</dt><dd id="r-cert" class="font-mono font-semibold text-gray-900"></dd></div>
@@ -82,44 +99,40 @@ const jsonLd = [
 </BaseLayout>
 
 <script>
-  const demoCerts = {
-    'PG-DNA-2026-000001': {
-      cert: 'PG-DNA-2026-000001',
-      dnaId: 'PGDNA-8F3A-2C7B-91E4',
-      date: '2026-01-15',
-      type: 'DNA 身份证',
-      status: '有效',
-    },
-    'PG-DNA-2026-000002': {
-      cert: 'PG-DNA-2026-000002',
-      dnaId: 'PGDNA-4D2E-7A9C-33F1',
-      date: '2026-02-20',
-      type: '飞行能力基因检测',
-      status: '有效',
-    },
-  };
+  import { verifyCertificate } from '../../lib/genetics';
+
+  const input = document.getElementById('cert-input');
+  const resultFound = document.getElementById('result-found');
+  const resultNotFound = document.getElementById('result-notfound');
 
   function verify() {
-    const input = document.getElementById('cert-input').value.trim().toUpperCase();
-    const found = demoCerts[input];
-    const resultFound = document.getElementById('result-found');
-    const resultNotFound = document.getElementById('result-notfound');
-
-    if (found) {
-      document.getElementById('r-cert').textContent = found.cert;
-      document.getElementById('r-dnaid').textContent = found.dnaId;
-      document.getElementById('r-date').textContent = found.date;
-      document.getElementById('r-type').textContent = found.type;
-      document.getElementById('r-status').textContent = found.status;
+    const outcome = verifyCertificate(input.value);
+    if (outcome.status === 'found' && outcome.certificate) {
+      const cert = outcome.certificate;
+      document.getElementById('result-title').textContent = `证书${cert.verificationStatus}`;
+      document.getElementById('r-cert').textContent = cert.certificateNumber;
+      document.getElementById('r-dnaid').textContent = cert.dnaId;
+      document.getElementById('r-date').textContent = cert.issueDate;
+      document.getElementById('r-type').textContent = cert.testingType;
+      document.getElementById('r-status').textContent = cert.verificationStatus;
       resultFound.classList.remove('hidden');
       resultNotFound.classList.add('hidden');
     } else {
-      document.getElementById('notfound-msg').textContent = `未找到编号为「${input || '（空）'}」的证书。`;
+      document.getElementById('notfound-msg').textContent = outcome.message;
       resultFound.classList.add('hidden');
       resultNotFound.classList.remove('hidden');
     }
   }
 
   document.getElementById('verify').addEventListener('click', verify);
-  document.getElementById('cert-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') verify(); });
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') verify();
+  });
+
+  document.querySelectorAll('.demo-cert').forEach((button) => {
+    button.addEventListener('click', () => {
+      input.value = button.dataset.cert || '';
+      verify();
+    });
+  });
 </script>

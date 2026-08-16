@@ -5,7 +5,7 @@ import Footer from '../../components/Footer.astro';
 import { ecosystem } from '../../data/entity';
 
 const title = '亲缘计算器';
-const description = '基于 STR 标记的亲缘相容性分析工具，输入父母与子代的 STR 基因型，判断位点是否相容。';
+const description = '基于 STR 标记的亲缘相容性分析工具，支持动态增删位点，输入父母与子代的 STR 基因型，判断位点是否相容。';
 
 const pageUrl = `${ecosystem.tools}/parentage-calculator/`;
 
@@ -28,9 +28,6 @@ const jsonLd = [
     ],
   },
 ];
-
-const defaultLoci = ['Locus-1', 'Locus-2', 'Locus-3'];
-const defaultLociJson = JSON.stringify(defaultLoci);
 ---
 
 <BaseLayout {title} {description} canonical="/parentage-calculator/" jsonLd={jsonLd}>
@@ -50,21 +47,26 @@ const defaultLociJson = JSON.stringify(defaultLoci);
     <section class="container-x py-16">
       <div class="mx-auto max-w-3xl">
         <div class="rounded-lg bg-blue-50 p-4 text-sm text-blue-900">
-          <strong>使用说明：</strong>输入父本、母本与子代在 3 个 STR 位点上的基因型。等位基因用 <code>/</code> 分隔（如 <code>12/15</code>）。子代的每个等位基因应能从父母中找到来源。
+          <strong>使用说明：</strong>输入父本、母本与子代在至少 3 个 STR 位点上的基因型。等位基因用 <code>/</code> 分隔（如 <code>12/15</code>）。每个位点的子代等位基因应能分别从父母中找到来源。
         </div>
 
         <div class="mt-6 overflow-x-auto">
-          <table class="w-full min-w-[560px] text-left text-sm">
+          <table class="w-full min-w-[720px] text-left text-sm">
             <thead class="border-b border-gray-200 bg-gray-50">
               <tr>
                 <th class="px-3 py-2 font-semibold text-gray-900">位点</th>
                 <th class="px-3 py-2 font-semibold text-gray-900">父本</th>
                 <th class="px-3 py-2 font-semibold text-gray-900">母本</th>
                 <th class="px-3 py-2 font-semibold text-gray-900">子代</th>
+                <th class="px-3 py-2 font-semibold text-gray-900">操作</th>
               </tr>
             </thead>
             <tbody id="loci-inputs" class="divide-y divide-gray-100"></tbody>
           </table>
+        </div>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button id="add-locus" class="btn-outline" type="button">+ 添加位点</button>
         </div>
 
         <button id="calculate" class="btn-primary mt-6 w-full">分析亲缘相容性</button>
@@ -73,7 +75,11 @@ const defaultLociJson = JSON.stringify(defaultLoci);
           <div class="card">
             <h2 class="text-lg font-bold text-gray-900">分析结果</h2>
             <p id="overall" class="mt-3 text-gray-700"></p>
+            <p id="overall-consistency" class="mt-1 font-semibold text-gray-900"></p>
             <div id="loci-results" class="mt-4 space-y-2"></div>
+            <p class="mt-4 rounded-lg bg-amber-50 p-4 text-xs text-amber-900">
+              <strong>科学声明：</strong>本结果仅用于数据相容性初步筛查，不替代正式亲缘鉴定报告。
+            </p>
           </div>
         </div>
 
@@ -85,70 +91,153 @@ const defaultLociJson = JSON.stringify(defaultLoci);
   <Footer />
 </BaseLayout>
 
-<script define:vars={{ defaultLoci }}>
-  const loci = defaultLoci;
+<script>
+  import { parentageCheck } from '../../lib/genetics';
 
-  // 初始化输入表格
   const tbody = document.getElementById('loci-inputs');
-  loci.forEach((locus, i) => {
+  const result = document.getElementById('result');
+  const errorBox = document.getElementById('error');
+
+  function escapeHtml(value) {
+    return value.replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    })[char]);
+  }
+
+  function showError(message) {
+    errorBox.textContent = message;
+    errorBox.classList.remove('hidden');
+    result.classList.add('hidden');
+  }
+
+  function clearOutput() {
+    result.classList.add('hidden');
+    errorBox.classList.add('hidden');
+  }
+
+  function appendRow(locusName = '') {
+    const rowCount = tbody.querySelectorAll('tr').length;
+    const autoName = locusName || `Locus-${rowCount + 1}`;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="px-3 py-2 font-medium text-gray-900">${locus}</td>
-      <td class="px-3 py-2"><input id="father-${i}" class="tool-input" placeholder="如 12/15" /></td>
-      <td class="px-3 py-2"><input id="mother-${i}" class="tool-input" placeholder="如 14/16" /></td>
-      <td class="px-3 py-2"><input id="offspring-${i}" class="tool-input" placeholder="如 12/14" /></td>
+      <td class="px-3 py-2">
+        <input class="tool-input locus-name" value="${escapeHtml(autoName)}" placeholder="Locus-${rowCount + 1}" aria-label="位点名称" autocomplete="off" />
+      </td>
+      <td class="px-3 py-2">
+        <input class="tool-input father-alleles" placeholder="如 12/15" aria-label="父本等位基因" autocomplete="off" />
+      </td>
+      <td class="px-3 py-2">
+        <input class="tool-input mother-alleles" placeholder="如 14/16" aria-label="母本等位基因" autocomplete="off" />
+      </td>
+      <td class="px-3 py-2">
+        <input class="tool-input offspring-alleles" placeholder="如 12/14" aria-label="子代等位基因" autocomplete="off" />
+      </td>
+      <td class="px-3 py-2">
+        <button type="button" class="remove-locus rounded-lg px-2 py-1 text-sm font-semibold text-red-600 transition hover:bg-red-50">删除</button>
+      </td>
     `;
     tbody.appendChild(tr);
-  });
+  }
 
-  document.getElementById('calculate').addEventListener('click', () => {
-    const err = document.getElementById('error');
-    const result = document.getElementById('result');
+  function normalizeLocusNames() {
+    const rows = [...tbody.querySelectorAll('tr')];
+    rows.forEach((row, index) => {
+      const input = row.querySelector('.locus-name');
+      const value = input.value.trim();
+      if (!value || /^Locus-\d+$/.test(value)) {
+        input.value = `Locus-${index + 1}`;
+      }
+      input.placeholder = `Locus-${index + 1}`;
+    });
+  }
+
+  for (let i = 1; i <= 3; i += 1) {
+    appendRow(`Locus-${i}`);
+  }
+  normalizeLocusNames();
+
+  function collectRecords() {
+    const rows = [...tbody.querySelectorAll('tr')];
+    if (rows.length < 3) {
+      throw new Error('至少需要 3 个 STR 位点才能进行亲缘相容性分析。');
+    }
 
     const father = {};
     const mother = {};
     const offspring = {};
-    let complete = true;
+    const usedNames = new Set();
 
-    loci.forEach((locus, i) => {
-      const f = document.getElementById(`father-${i}`).value.trim();
-      const m = document.getElementById(`mother-${i}`).value.trim();
-      const o = document.getElementById(`offspring-${i}`).value.trim();
-      if (!f || !m || !o) complete = false;
-      father[locus] = f;
-      mother[locus] = m;
-      offspring[locus] = o;
+    rows.forEach((row, index) => {
+      const rawName = row.querySelector('.locus-name').value.trim();
+      const locus = rawName || `Locus-${index + 1}`;
+      if (usedNames.has(locus)) {
+        throw new Error(`位点名称不能重复：「${locus}」。请为每个位点填写唯一名称。`);
+      }
+      usedNames.add(locus);
+
+      father[locus] = row.querySelector('.father-alleles').value.trim();
+      mother[locus] = row.querySelector('.mother-alleles').value.trim();
+      offspring[locus] = row.querySelector('.offspring-alleles').value.trim();
     });
 
-    if (!complete) {
-      err.textContent = '请完整填写所有位点的父母与子代基因型。';
-      err.classList.remove('hidden');
-      result.classList.add('hidden');
-      return;
+    return { father, mother, offspring };
+  }
+
+  function calculate() {
+    try {
+      const { father, mother, offspring } = collectRecords();
+      const outcome = parentageCheck(father, mother, offspring);
+
+      if (outcome.status === 'insufficient') {
+        showError(outcome.message);
+        return;
+      }
+
+      document.getElementById('overall').textContent = outcome.message;
+      document.getElementById('overall-consistency').textContent = outcome.overallConsistency;
+
+      document.getElementById('loci-results').innerHTML = outcome.loci.map((locus) => {
+        const tone = locus.consistent
+          ? 'border-green-200 bg-green-50'
+          : 'border-red-200 bg-red-50';
+        const labelTone = locus.consistent ? 'text-green-700' : 'text-red-700';
+        const label = locus.consistent ? '相容 ✓' : '不匹配 ✗';
+        return `
+          <div class="rounded-lg border px-4 py-2 ${tone}">
+            <div class="flex items-center justify-between gap-3">
+              <span class="font-semibold text-gray-900">${escapeHtml(locus.locus)}</span>
+              <span class="font-bold ${labelTone}">${label}</span>
+            </div>
+            <p class="mt-1 text-xs text-gray-600">父本 ${escapeHtml(locus.fatherAlleles.join('/'))} · 母本 ${escapeHtml(locus.motherAlleles.join('/'))} · 子代 ${escapeHtml(locus.offspringAlleles.join('/'))}</p>
+          </div>
+        `;
+      }).join('');
+
+      result.classList.remove('hidden');
+      errorBox.classList.add('hidden');
+    } catch (error) {
+      showError(error instanceof Error ? error.message : '输入有误，请检查后重试。');
     }
+  }
 
-    const lociResults = loci.map((locus) => {
-      const off = offspring[locus].split('/');
-      const fatherAlleles = father[locus].split('/');
-      const motherAlleles = mother[locus].split('/');
-      const allParent = [...fatherAlleles, ...motherAlleles];
-      const consistent = off.every((a) => allParent.includes(a)) && off.some((a) => fatherAlleles.includes(a)) && off.some((a) => motherAlleles.includes(a));
-      return { locus, consistent };
-    });
-
-    const allConsistent = lociResults.every((r) => r.consistent);
-    document.getElementById('overall').textContent = allConsistent
-      ? `已完成 ${loci.length} 个位点的分析，所有位点均与父母基因型相容，支持亲缘关系。`
-      : '存在位点不匹配，提示亲缘关系存疑或数据有误。';
-
-    document.getElementById('loci-results').innerHTML = lociResults.map((r) =>
-      `<div class="flex items-center justify-between rounded-lg px-4 py-2 ${r.consistent ? 'bg-green-50' : 'bg-red-50'}">
-        <span class="font-medium text-gray-900">${r.locus}</span>
-        <span class="font-bold ${r.consistent ? 'text-green-700' : 'text-red-700'}">${r.consistent ? '相容 ✓' : '不匹配 ✗'}</span>
-      </div>`
-    ).join('');
-
-    result.classList.remove('hidden');
-    err.classList.add('hidden');
+  document.getElementById('add-locus').addEventListener('click', () => {
+    appendRow();
+    normalizeLocusNames();
+    clearOutput();
   });
+
+  tbody.addEventListener('click', (event) => {
+    const button = event.target.closest('.remove-locus');
+    if (!button) return;
+    const row = button.closest('tr');
+    if (row) row.remove();
+    normalizeLocusNames();
+    clearOutput();
+  });
+
+  document.getElementById('calculate').addEventListener('click', calculate);
 </script>

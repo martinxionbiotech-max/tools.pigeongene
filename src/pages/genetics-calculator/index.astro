@@ -49,20 +49,18 @@ const jsonLd = [
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <label for="parent-a" class="block text-sm font-semibold text-gray-900">亲本 A 基因型</label>
-            <select id="parent-a" class="tool-input mt-2">
-              <option value="AA">AA（纯合显性）</option>
-              <option value="Aa" selected>Aa（杂合）</option>
-              <option value="aa">aa（纯合隐性）</option>
-            </select>
+            <input id="parent-a" type="text" class="tool-input mt-2" value="Aa" placeholder="例如 AA、Aa、aa" autocomplete="off" maxlength="2" />
           </div>
           <div>
             <label for="parent-b" class="block text-sm font-semibold text-gray-900">亲本 B 基因型</label>
-            <select id="parent-b" class="tool-input mt-2">
-              <option value="AA">AA（纯合显性）</option>
-              <option value="Aa" selected>Aa（杂合）</option>
-              <option value="aa">aa（纯合隐性）</option>
-            </select>
+            <input id="parent-b" type="text" class="tool-input mt-2" value="Aa" placeholder="例如 AA、Aa、aa" autocomplete="off" maxlength="2" />
           </div>
+        </div>
+
+        <div class="mt-4">
+          <label for="dominant-allele" class="block text-sm font-semibold text-gray-900">显性等位基因</label>
+          <input id="dominant-allele" type="text" class="tool-input mt-2" value="A" placeholder="例如 A、B、R" autocomplete="off" maxlength="1" />
+          <p class="mt-2 text-xs text-gray-500">可自由指定显性等位基因；大小写会被视为不同等位基因。</p>
         </div>
 
         <button id="calculate" class="btn-primary mt-6 w-full">计算</button>
@@ -74,7 +72,7 @@ const jsonLd = [
           </div>
           <div class="card mt-4">
             <h2 class="text-lg font-bold text-gray-900">子代表型概率</h2>
-            <p class="mt-1 text-xs text-gray-500">假设 A 为显性等位基因</p>
+            <p id="phenotype-note" class="mt-1 text-xs text-gray-500">假设 A 为显性等位基因</p>
             <div id="phenotype-results" class="mt-4 space-y-2"></div>
           </div>
           <div class="mt-4 rounded-lg bg-amber-50 p-4 text-xs text-amber-900">
@@ -91,47 +89,51 @@ const jsonLd = [
 </BaseLayout>
 
 <script>
-  function punnett(parentA, parentB) {
-    const a = parentA.split('');
-    const b = parentB.split('');
-    const combos = [];
-    for (const allele1 of a) {
-      for (const allele2 of b) {
-        combos.push([allele1, allele2].sort().join(''));
-      }
+  import { punnettSquare } from '../../lib/genetics';
+
+  const parentA = document.getElementById('parent-a');
+  const parentB = document.getElementById('parent-b');
+  const dominantAllele = document.getElementById('dominant-allele');
+  const result = document.getElementById('result');
+  const errorBox = document.getElementById('error');
+
+  function calculate() {
+    try {
+      const outcome = punnettSquare(parentA.value, parentB.value, {
+        dominantAllele: dominantAllele.value,
+      });
+
+      document.getElementById('phenotype-note').textContent = `假设 ${outcome.dominantAllele} 为显性等位基因`;
+
+      document.getElementById('genotype-results').innerHTML = outcome.offspring.map((item) =>
+        `<div class="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-2"><span class="font-mono font-semibold text-gray-900">${item.genotype}</span><span class="font-bold text-brand-700">${item.percentage}</span></div>`
+      ).join('');
+
+      document.getElementById('phenotype-results').innerHTML = outcome.phenotypes.map((item) =>
+        `<div class="flex items-start justify-between gap-3 rounded-lg bg-gray-50 px-4 py-2">
+          <div>
+            <p class="text-gray-800">${item.phenotype}</p>
+            <p class="mt-0.5 text-xs text-gray-500">基因型：${item.genotypes.length ? item.genotypes.join('、') : '无'}</p>
+          </div>
+          <span class="font-bold text-brand-700">${item.percentage}</span>
+        </div>`
+      ).join('');
+
+      result.classList.remove('hidden');
+      errorBox.classList.add('hidden');
+    } catch (error) {
+      errorBox.textContent = error instanceof Error ? error.message : '输入有误，请检查后重试。';
+      errorBox.classList.remove('hidden');
+      result.classList.add('hidden');
     }
-    const counts = {};
-    for (const c of combos) counts[c] = (counts[c] || 0) + 1;
-    const order = ['AA', 'Aa', 'aa'];
-    const offspring = order.filter((g) => counts[g]).map((g) => ({ genotype: g, pct: ((counts[g] / 4) * 100).toFixed(0) + '%' }));
-    const dom = (counts['AA'] || 0) + (counts['Aa'] || 0);
-    const rec = counts['aa'] || 0;
-    const phenotypes = [
-      { label: '显性表型（AA 或 Aa）', pct: ((dom / 4) * 100).toFixed(0) + '%' },
-      { label: '隐性表型（aa）', pct: ((rec / 4) * 100).toFixed(0) + '%' },
-    ];
-    return { offspring, phenotypes };
   }
 
-  document.getElementById('calculate').addEventListener('click', () => {
-    const a = document.getElementById('parent-a').value;
-    const b = document.getElementById('parent-b').value;
-    const { offspring, phenotypes } = punnett(a, b);
-
-    const genDiv = document.getElementById('genotype-results');
-    genDiv.innerHTML = offspring.map((o) =>
-      `<div class="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-2"><span class="font-mono font-semibold text-gray-900">${o.genotype}</span><span class="font-bold text-brand-700">${o.pct}</span></div>`
-    ).join('');
-
-    const phenDiv = document.getElementById('phenotype-results');
-    phenDiv.innerHTML = phenotypes.map((p) =>
-      `<div class="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-2"><span class="text-gray-700">${p.label}</span><span class="font-bold text-brand-700">${p.pct}</span></div>`
-    ).join('');
-
-    document.getElementById('result').classList.remove('hidden');
-    document.getElementById('error').classList.add('hidden');
+  document.getElementById('calculate').addEventListener('click', calculate);
+  [parentA, parentB, dominantAllele].forEach((input) => {
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') calculate();
+    });
   });
 
-  // 初始计算
-  document.getElementById('calculate').click();
+  calculate();
 </script>
