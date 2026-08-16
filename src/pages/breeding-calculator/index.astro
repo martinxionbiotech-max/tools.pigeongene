@@ -3,9 +3,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { ecosystem } from '../../data/entity';
+import { geneDatabase } from '../../data/genes';
 
 const title = '育种计算器';
-const description = '双基因位点的自由组合遗传计算器，输入两个亲本的基因型（如 AaBb），计算子代基因型的理论概率分布。';
+const description = '基于 8 项飞行能力基因的双基因位点自由组合计算器，选择两个基因位点与亲本基因型，计算子代基因型组合的理论概率分布。';
 
 const pageUrl = `${ecosystem.tools}/breeding-calculator/`;
 
@@ -28,6 +29,12 @@ const jsonLd = [
     ],
   },
 ];
+
+const genotypeOptions = [
+  { value: 'AA', label: 'AA（纯合显性）' },
+  { value: 'Aa', label: 'Aa（杂合）' },
+  { value: 'aa', label: 'aa（纯合隐性）' },
+];
 ---
 
 <BaseLayout {title} {description} canonical="/breeding-calculator/" jsonLd={jsonLd}>
@@ -40,7 +47,7 @@ const jsonLd = [
           <a href="/" class="hover:text-white">首页</a> / <span class="text-white">育种计算器</span>
         </nav>
         <h1 class="mt-4 text-4xl font-bold">育种计算器</h1>
-        <p class="mt-4 max-w-2xl text-lg text-brand-100">双基因位点的自由组合遗传计算。</p>
+        <p class="mt-4 max-w-2xl text-lg text-brand-100">基于 8 项飞行能力基因的双基因位点自由组合遗传计算。</p>
       </div>
     </section>
 
@@ -48,21 +55,73 @@ const jsonLd = [
       <div class="mx-auto max-w-2xl">
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
-            <label for="parent-a" class="block text-sm font-semibold text-gray-900">亲本 A 基因型</label>
-            <input id="parent-a" type="text" class="tool-input mt-2" value="AaBb" placeholder="如 AaBb" maxlength="4" autocomplete="off" />
+            <label for="locus-1" class="block text-sm font-semibold text-gray-900">基因位点 1</label>
+            <select id="locus-1" class="tool-input mt-2">
+              {geneDatabase.map((gene) => (
+                <option value={gene.code} selected={gene.code === 'LDHA'}>{gene.name}（{gene.code}）</option>
+              ))}
+            </select>
           </div>
           <div>
-            <label for="parent-b" class="block text-sm font-semibold text-gray-900">亲本 B 基因型</label>
-            <input id="parent-b" type="text" class="tool-input mt-2" value="AaBb" placeholder="如 AaBb" maxlength="4" autocomplete="off" />
+            <label for="locus-2" class="block text-sm font-semibold text-gray-900">基因位点 2</label>
+            <select id="locus-2" class="tool-input mt-2">
+              {geneDatabase.map((gene) => (
+                <option value={gene.code} selected={gene.code === 'MSTN'}>{gene.name}（{gene.code}）</option>
+              ))}
+            </select>
           </div>
         </div>
-        <p class="mt-2 text-xs text-gray-500">格式：4 个英文字母，两个基因位点各两个等位基因（如 AaBb）。支持大小写混写，AaBb 与 aabb 会按原字母含义计算。</p>
+        <p class="mt-2 text-xs text-gray-500">8 项飞行能力基因：LDHA、DRD4、CRY1、MSTN、LRP8、GSR、CASK、F-KER。建议选择两个不同基因位点进行组合。</p>
 
-        <button id="calculate" class="btn-primary mt-4 w-full">计算</button>
+        <div class="card-no-hover mt-6">
+          <h2 class="text-base font-bold text-gray-900">亲本 A</h2>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="parent-a-locus1" class="block text-sm font-semibold text-gray-900">位点 1 <span id="locus1-code-a">LDHA</span> 基因型</label>
+              <select id="parent-a-locus1" class="tool-input mt-2">
+                {genotypeOptions.map((option) => (
+                  <option value={option.value} selected={option.value === 'Aa'}>{option.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label for="parent-a-locus2" class="block text-sm font-semibold text-gray-900">位点 2 <span id="locus2-code-a">MSTN</span> 基因型</label>
+              <select id="parent-a-locus2" class="tool-input mt-2">
+                {genotypeOptions.map((option) => (
+                  <option value={option.value} selected={option.value === 'Aa'}>{option.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-no-hover mt-4">
+          <h2 class="text-base font-bold text-gray-900">亲本 B</h2>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="parent-b-locus1" class="block text-sm font-semibold text-gray-900">位点 1 <span id="locus1-code-b">LDHA</span> 基因型</label>
+              <select id="parent-b-locus1" class="tool-input mt-2">
+                {genotypeOptions.map((option) => (
+                  <option value={option.value} selected={option.value === 'Aa'}>{option.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label for="parent-b-locus2" class="block text-sm font-semibold text-gray-900">位点 2 <span id="locus2-code-b">MSTN</span> 基因型</label>
+              <select id="parent-b-locus2" class="tool-input mt-2">
+                {genotypeOptions.map((option) => (
+                  <option value={option.value} selected={option.value === 'Aa'}>{option.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button id="calculate" class="btn-primary mt-6 w-full">计算</button>
 
         <div id="result" class="mt-8 hidden">
           <div class="card">
-            <h2 class="text-lg font-bold text-gray-900">子代基因型概率</h2>
+            <h2 class="text-lg font-bold text-gray-900">子代基因型组合概率</h2>
             <div id="results" class="mt-4 grid gap-2 sm:grid-cols-2"></div>
           </div>
           <div class="mt-4 rounded-lg bg-amber-50 p-4 text-xs text-amber-900">
@@ -80,22 +139,43 @@ const jsonLd = [
 
 <script>
   import { dihybridCross } from '../../lib/genetics';
+  import { geneDatabase } from '../../data/genes';
 
-  const parentA = document.getElementById('parent-a');
-  const parentB = document.getElementById('parent-b');
+  const geneByCode = new Map(geneDatabase.map((gene) => [gene.code, gene]));
+  const locus1 = document.getElementById('locus-1');
+  const locus2 = document.getElementById('locus-2');
+  const parentALocus1 = document.getElementById('parent-a-locus1');
+  const parentALocus2 = document.getElementById('parent-a-locus2');
+  const parentBLocus1 = document.getElementById('parent-b-locus1');
+  const parentBLocus2 = document.getElementById('parent-b-locus2');
   const result = document.getElementById('result');
   const errorBox = document.getElementById('error');
 
+  function updateLocusLabels() {
+    const gene1 = geneByCode.get(locus1.value);
+    const gene2 = geneByCode.get(locus2.value);
+    document.getElementById('locus1-code-a').textContent = gene1?.code || locus1.value;
+    document.getElementById('locus1-code-b').textContent = gene1?.code || locus1.value;
+    document.getElementById('locus2-code-a').textContent = gene2?.code || locus2.value;
+    document.getElementById('locus2-code-b').textContent = gene2?.code || locus2.value;
+  }
+
   function calculate() {
     try {
-      const outcome = dihybridCross(parentA.value, parentB.value);
+      const gene1 = geneByCode.get(locus1.value)?.code || locus1.value;
+      const gene2 = geneByCode.get(locus2.value)?.code || locus2.value;
+      const parentA = `${parentALocus1.value}${parentALocus2.value}`;
+      const parentB = `${parentBLocus1.value}${parentBLocus2.value}`;
+      const outcome = dihybridCross(parentA, parentB);
 
-      document.getElementById('results').innerHTML = outcome.offspring.map((item) =>
-        `<div class="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-          <span class="font-mono font-semibold text-gray-900">${item.genotype}</span>
+      document.getElementById('results').innerHTML = outcome.offspring.map((item) => {
+        const firstGenotype = item.genotype.slice(0, 2);
+        const secondGenotype = item.genotype.slice(2, 4);
+        return `<div class="flex items-start justify-between gap-3 rounded-lg bg-gray-50 px-3 py-2">
+          <span class="font-mono text-sm font-semibold text-gray-900">${gene1}:${firstGenotype} + ${gene2}:${secondGenotype}</span>
           <span class="font-bold text-brand-700">${item.percentage}</span>
-        </div>`
-      ).join('');
+        </div>`;
+      }).join('');
 
       result.classList.remove('hidden');
       errorBox.classList.add('hidden');
@@ -107,11 +187,18 @@ const jsonLd = [
   }
 
   document.getElementById('calculate').addEventListener('click', calculate);
-  [parentA, parentB].forEach((input) => {
-    input.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') calculate();
-    });
+  locus1.addEventListener('change', () => {
+    updateLocusLabels();
+    calculate();
+  });
+  locus2.addEventListener('change', () => {
+    updateLocusLabels();
+    calculate();
+  });
+  [parentALocus1, parentALocus2, parentBLocus1, parentBLocus2].forEach((input) => {
+    input.addEventListener('change', calculate);
   });
 
+  updateLocusLabels();
   calculate();
 </script>

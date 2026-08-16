@@ -1,6 +1,6 @@
 # PigeonGene Tools
 
-> 赛鸽遗传与 DNA 在线工具 —— 基因查询、遗传计算、育种计算、亲缘分析与 DNA 证书验证。
+> 赛鸽遗传与 DNA 在线工具 —— 基因查询、遗传计算、育种计算、亲缘分析。
 
 ## 站点说明
 
@@ -12,7 +12,6 @@ PigeonGene Tools（tools.senopigeon.com）是 PigeonGene 生态的在线工具�
 - [遗传计算器](https://tools.senopigeon.com/genetics-calculator/)：单基因位点孟德尔遗传（Punnett 方格）
 - [育种计算器](https://tools.senopigeon.com/breeding-calculator/)：双基因位点自由组合遗传
 - [亲缘计算器](https://tools.senopigeon.com/parentage-calculator/)：STR 标记亲缘相容性分析
-- [DNA 证书验证](https://tools.senopigeon.com/dna-certificate-verification/)：验证 DNA 证书真实性
 
 ## 基因查询
 

@@ -49,18 +49,20 @@ const jsonLd = [
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <label for="parent-a" class="block text-sm font-semibold text-gray-900">亲本 A 基因型</label>
-            <input id="parent-a" type="text" class="tool-input mt-2" value="Aa" placeholder="例如 AA、Aa、aa" autocomplete="off" maxlength="2" />
+            <select id="parent-a" class="tool-input mt-2">
+              <option value="AA">AA（纯合显性）</option>
+              <option value="Aa" selected>Aa（杂合）</option>
+              <option value="aa">aa（纯合隐性）</option>
+            </select>
           </div>
           <div>
             <label for="parent-b" class="block text-sm font-semibold text-gray-900">亲本 B 基因型</label>
-            <input id="parent-b" type="text" class="tool-input mt-2" value="Aa" placeholder="例如 AA、Aa、aa" autocomplete="off" maxlength="2" />
+            <select id="parent-b" class="tool-input mt-2">
+              <option value="AA">AA（纯合显性）</option>
+              <option value="Aa" selected>Aa（杂合）</option>
+              <option value="aa">aa（纯合隐性）</option>
+            </select>
           </div>
-        </div>
-
-        <div class="mt-4">
-          <label for="dominant-allele" class="block text-sm font-semibold text-gray-900">显性等位基因</label>
-          <input id="dominant-allele" type="text" class="tool-input mt-2" value="A" placeholder="例如 A、B、R" autocomplete="off" maxlength="1" />
-          <p class="mt-2 text-xs text-gray-500">可自由指定显性等位基因；大小写会被视为不同等位基因。</p>
         </div>
 
         <button id="calculate" class="btn-primary mt-6 w-full">计算</button>
@@ -93,17 +95,12 @@ const jsonLd = [
 
   const parentA = document.getElementById('parent-a');
   const parentB = document.getElementById('parent-b');
-  const dominantAllele = document.getElementById('dominant-allele');
   const result = document.getElementById('result');
   const errorBox = document.getElementById('error');
 
   function calculate() {
     try {
-      const outcome = punnettSquare(parentA.value, parentB.value, {
-        dominantAllele: dominantAllele.value,
-      });
-
-      document.getElementById('phenotype-note').textContent = `假设 ${outcome.dominantAllele} 为显性等位基因`;
+      const outcome = punnettSquare(parentA.value, parentB.value);
 
       document.getElementById('genotype-results').innerHTML = outcome.offspring.map((item) =>
         `<div class="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-2"><span class="font-mono font-semibold text-gray-900">${item.genotype}</span><span class="font-bold text-brand-700">${item.percentage}</span></div>`
@@ -129,10 +126,8 @@ const jsonLd = [
   }
 
   document.getElementById('calculate').addEventListener('click', calculate);
-  [parentA, parentB, dominantAllele].forEach((input) => {
-    input.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') calculate();
-    });
+  [parentA, parentB].forEach((input) => {
+    input.addEventListener('change', calculate);
   });
 
   calculate();

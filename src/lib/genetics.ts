@@ -1,9 +1,6 @@
 // 遗传计算逻辑 —— 基于孟德尔遗传定律，计算可复现、有边界条件
 // 本文件是各工具页面的唯一计算来源，避免在页面 <script> 中重复实现。
 
-import { demoCertificates } from '../data/certificates';
-import type { DemoCertificate } from '../data/certificates';
-
 // 单基因位点的孟德尔遗传：两个亲本各提供一个等位基因
 // 基因型用两个字母表示（如 AA、Aa、aa），保留输入大小写：
 // 大写字母与小写字母视为不同等位基因（如 A 显性、a 隐性）。
@@ -279,29 +276,5 @@ export function parentageCheck(
     message: `已完成 ${loci.length} 个位点的亲缘相容性分析。`,
     loci: results,
     overallConsistency,
-  };
-}
-
-// DNA 证书验证（模拟 registry 查询，明确返回“未找到”而非猜测）
-export interface CertificateResult {
-  status: 'found' | 'not_found';
-  message: string;
-  certificate?: DemoCertificate;
-}
-
-export function verifyCertificate(certNumber: string): CertificateResult {
-  const cleaned = certNumber.trim().toUpperCase();
-  if (!cleaned) {
-    return { status: 'not_found', message: '请输入证书编号。' };
-  }
-
-  const found = demoCertificates[cleaned];
-  if (found) {
-    return { status: 'found', message: '证书已找到。', certificate: found };
-  }
-
-  return {
-    status: 'not_found',
-    message: `证书未找到：${cleaned}。请核对证书编号，或联系检测机构核实。`,
   };
 }
