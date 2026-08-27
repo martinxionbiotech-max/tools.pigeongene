@@ -27,7 +27,7 @@ export const org = {
     streetAddress: '桥东区北硅谷 3 号楼',
   },
   email: 'martin@senobiocorp.com',
-  telephone: '+86 13323237275',
+  telephone: '+86 15612372623',
 };
 
 export const ecosystem = {
