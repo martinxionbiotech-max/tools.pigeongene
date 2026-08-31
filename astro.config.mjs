@@ -5,7 +5,7 @@ import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://tools.senopigeon.com',
+  site: 'https://tool.senopigeon.com',
   integrations: [
     tailwind({
       applyBaseStyles: false,

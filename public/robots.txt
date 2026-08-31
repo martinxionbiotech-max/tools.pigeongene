@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://tools.senopigeon.com/sitemap-index.xml
+Sitemap: https://tool.senopigeon.com/sitemap-index.xml
