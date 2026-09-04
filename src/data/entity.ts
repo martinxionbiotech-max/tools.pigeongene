@@ -45,3 +45,26 @@ export const sameAs = [
   ecosystem.research,
   ecosystem.tools,
 ];
+
+export const services = [
+  {
+    slug: 'service-performance-dna-testing',
+    name: '赛鸽飞行能力基因检测',
+    serviceType: 'Racing Pigeon Performance DNA Testing',
+    description:
+      '基于实时荧光定量 PCR 的赛鸽飞行能力基因检测，覆盖 LDHA、DRD4、CRY1、MSTN、LRP8、GSR、F-KER、CASK 八大性能基因位点，出具 DNA 检测报告与育种建议。',
+  },
+  {
+    slug: 'service-virus-detection',
+    name: '赛鸽病毒检测',
+    serviceType: 'Pigeon Pathogen Detection',
+    description:
+      '赛鸽常见病原的分子检测，覆盖病毒、细菌、寄生虫等 12 种病原的 PCR 检测，用于鸽群健康管理与疾病防控。',
+  },
+  {
+    slug: 'service-dna-id-parentage',
+    name: 'DNA 身份证与亲缘鉴定',
+    serviceType: 'Pigeon DNA Identification & Parentage Testing',
+    description: '赛鸽 DNA 身份证与亲缘鉴定，用于血统溯源、亲子鉴定与种鸽管理。',
+  },
+];

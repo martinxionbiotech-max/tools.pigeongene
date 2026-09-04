@@ -4,7 +4,7 @@ import '@fontsource/inter/latin-400.css';
 import '@fontsource/inter/latin-500.css';
 import '@fontsource/inter/latin-600.css';
 import '@fontsource/inter/latin-700.css';
-import { org, ecosystem, sameAs } from '../data/entity';
+import { org, ecosystem, sameAs, services } from '../data/entity';
 
 interface Props {
   title: string;
@@ -52,6 +52,7 @@ const baseJsonLd = [
       contactType: 'customer service',
     },
     sameAs,
+    makesOffer: services.map((s) => ({ '@id': `${siteUrl}/#${s.slug}` })),
   },
   {
     '@context': 'https://schema.org',
@@ -63,6 +64,19 @@ const baseJsonLd = [
     publisher: { '@id': `${siteUrl}/#organization` },
     inLanguage: 'zh-CN',
   },
+  ...services.map((s) => ({
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    '@id': `${siteUrl}/#${s.slug}`,
+    name: s.name,
+    serviceType: s.serviceType,
+    description: s.description,
+    provider: { '@id': `${siteUrl}/#organization` },
+    areaServed: 'Worldwide',
+    url: 'https://senopigeon.com/',
+    category: 'Genetic Testing',
+    inLanguage: 'zh-CN',
+  })),
 ];
 ---
 
