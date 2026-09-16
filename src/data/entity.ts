@@ -9,7 +9,6 @@ export const org = {
   foundingDate: '2014',
   numberOfEmployees: 15,
   award: ['国家高新技术企业', '张家口市重点基因检测实验室', '科技型中小企业'],
-  hasCredential: 'ISO 9001 质量管理体系认证',
   knowsAbout: [
     '赛鸽飞行能力基因检测',
     '赛鸽病毒检测',
