@@ -50,7 +50,7 @@ const sisterSites = [
     <div>
       <h2 class="text-sm font-semibold text-gray-900">帮助与联系</h2>
       <ul class="mt-4 space-y-2 text-sm text-gray-600">
-        <li><a href="/faq/" class="hover:text-brand-600">常见问题</a></li>
+        <li><a href={`${ecosystem.main}/faq/`} class="hover:text-brand-600" rel="noopener">常见问题</a></li>
         <li><a href="/glossary/" class="hover:text-brand-600">术语表</a></li>
         <li><span aria-hidden="true">📧</span> <a href={`mailto:${org.email}`} class="hover:text-brand-600">{org.email}</a></li>
         <li><span aria-hidden="true">📞</span> <a href="tel:+8615612372623" class="hover:text-brand-600">+86 15612372623</a></li>
@@ -66,7 +66,7 @@ const sisterSites = [
         <span aria-hidden="true">·</span>
         <a href="/llms.txt" class="hover:text-brand-600">llms.txt</a>
         <span aria-hidden="true">·</span>
-        <a href="/sitemap.xml" class="hover:text-brand-600">sitemap</a>
+        <a href="/sitemap-index.xml" class="hover:text-brand-600">sitemap</a>
       </p>
     </div>
   </div>
