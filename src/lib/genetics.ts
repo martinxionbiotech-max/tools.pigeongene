@@ -1,12 +1,65 @@
 // 遗传计算逻辑 —— 基于孟德尔遗传定律，计算可复现、有边界条件
 // 本文件是各工具页面的唯一计算来源，避免在页面 <script> 中重复实现。
 
+// 面向用户的文案按语言分支；默认 zh，中文页行为不变。
+export type Locale = 'zh' | 'en';
+
+const M = {
+  zh: {
+    genotypeLength: '基因型必须由两个等位基因组成（如 AA、Aa、aa）。',
+    genotypeLetters: '基因型只能由两个英文字母组成，例如 AA、Aa、Bb。',
+    dominantLetter: '显性等位基因必须是单个英文字母（如 A、B、R）。',
+    phenotypeDominant: (allele: string) => `显性表型（含 ${allele}）`,
+    phenotypeRecessive: (allele: string) => `隐性表型（不含 ${allele}）`,
+    dihybridFormat: '双基因型必须由四个英文字母组成（如 AaBb），且不能包含空格、数字或符号。',
+    emptyAlleles: (prefix: string) => `${prefix}等位基因不能为空。`,
+    slashFormat: (prefix: string) => `${prefix}请使用「等位基因1/等位基因2」格式，例如 12/15。`,
+    twoAlleles: (prefix: string) => `${prefix}必须恰好包含两个等位基因，格式如 12/15。`,
+    alleleChars: (prefix: string) => `${prefix}等位基因只能包含字母、数字或小数点。`,
+    insufficient: '数据不足：亲缘鉴定至少需要 3 个 STR 位点的完整数据。',
+    overallConsistent: '所有位点均与父母基因型相容，支持候选亲缘关系。',
+    overallInconsistent: '存在位点不匹配，提示亲缘关系存疑或数据有误。',
+    parentageDone: (n: number) => `已完成 ${n} 个位点的亲缘相容性分析。`,
+    locusFather: (locus: string) => `位点「${locus}」的父本`,
+    locusMother: (locus: string) => `位点「${locus}」的母本`,
+    locusOffspring: (locus: string) => `位点「${locus}」的子代`,
+  },
+  en: {
+    genotypeLength: 'A genotype must consist of two alleles (for example AA, Aa, aa).',
+    genotypeLetters: 'A genotype must consist of two letters only, for example AA, Aa, Bb.',
+    dominantLetter: 'The dominant allele must be a single letter (for example A, B, R).',
+    phenotypeDominant: (allele: string) => `Dominant phenotype (carries ${allele})`,
+    phenotypeRecessive: (allele: string) => `Recessive phenotype (no ${allele})`,
+    dihybridFormat:
+      'A two-locus genotype must consist of four letters (for example AaBb) and cannot contain spaces, digits or symbols.',
+    emptyAlleles: (prefix: string) => `${prefix}allele value cannot be empty.`,
+    slashFormat: (prefix: string) =>
+      `${prefix}use the "allele1/allele2" format, for example 12/15.`,
+    twoAlleles: (prefix: string) =>
+      `${prefix}must contain exactly two alleles, for example 12/15.`,
+    alleleChars: (prefix: string) =>
+      `${prefix}alleles may contain letters, digits or a decimal point only.`,
+    insufficient:
+      'Not enough data: a parentage check needs complete data for at least 3 STR loci.',
+    overallConsistent:
+      'All loci are compatible with both parents, which supports the candidate parentage relationship.',
+    overallInconsistent:
+      'At least one locus does not match, which indicates a doubtful parentage relationship or a data error.',
+    parentageDone: (n: number) => `Parentage compatibility analysed across ${n} loci.`,
+    locusFather: (locus: string) => `Father at locus "${locus}"`,
+    locusMother: (locus: string) => `Mother at locus "${locus}"`,
+    locusOffspring: (locus: string) => `Offspring at locus "${locus}"`,
+  },
+} as const;
+
 // 单基因位点的孟德尔遗传：两个亲本各提供一个等位基因
 // 基因型用两个字母表示（如 AA、Aa、aa），保留输入大小写：
 // 大写字母与小写字母视为不同等位基因（如 A 显性、a 隐性）。
 export interface PunnettOptions {
   // 指定哪个等位基因为显性，默认 A。
   dominantAllele?: string;
+  // 面向用户的文案语言，默认 zh。
+  locale?: Locale;
 }
 
 export interface PunnettResult {
@@ -37,35 +90,39 @@ function compareAlleleKeys(a: string, b: string): number {
 }
 
 // 解析并校验单基因型。大小写均接受，且不会把 Aa 归一化成 AA。
-export function parseGenotype(genotype: string): [string, string] {
+export function parseGenotype(genotype: string, locale: Locale = 'zh'): [string, string] {
+  const m = M[locale];
   const cleaned = genotype.trim();
   if (cleaned.length !== 2) {
-    throw new Error('基因型必须由两个等位基因组成（如 AA、Aa、aa）。');
+    throw new Error(m.genotypeLength);
   }
   if (!/^[A-Za-z]{2}$/.test(cleaned)) {
-    throw new Error('基因型只能由两个英文字母组成，例如 AA、Aa、Bb。');
+    throw new Error(m.genotypeLetters);
   }
   return [cleaned[0], cleaned[1]];
 }
 
-export function normalizeGenotype(genotype: string): string {
-  const [a, b] = parseGenotype(genotype);
+export function normalizeGenotype(genotype: string, locale: Locale = 'zh'): string {
+  const [a, b] = parseGenotype(genotype, locale);
   return canonicalAlleles(a, b);
 }
 
-export function parseDominantAllele(value: string | undefined, fallback = 'A'): string {
+export function parseDominantAllele(value: string | undefined, fallback = 'A', locale: Locale = 'zh'): string {
+  const m = M[locale];
   const cleaned = (value ?? fallback).trim();
   if (!/^[A-Za-z]$/.test(cleaned)) {
-    throw new Error('显性等位基因必须是单个英文字母（如 A、B、R）。');
+    throw new Error(m.dominantLetter);
   }
   return cleaned;
 }
 
 // 计算单基因位点的 Punnett 方格。
 export function punnettSquare(parentA: string, parentB: string, options: PunnettOptions = {}): PunnettResult {
-  const [a1, a2] = parseGenotype(parentA);
-  const [b1, b2] = parseGenotype(parentB);
-  const dominantAllele = parseDominantAllele(options.dominantAllele);
+  const locale = options.locale ?? 'zh';
+  const m = M[locale];
+  const [a1, a2] = parseGenotype(parentA, locale);
+  const [b1, b2] = parseGenotype(parentB, locale);
+  const dominantAllele = parseDominantAllele(options.dominantAllele, 'A', locale);
 
   const combos: string[] = [];
   for (const allele1 of [a1, a2]) {
@@ -101,13 +158,13 @@ export function punnettSquare(parentA: string, parentB: string, options: Punnett
 
   const phenotypes = [
     {
-      phenotype: `显性表型（含 ${dominantAllele}）`,
+      phenotype: m.phenotypeDominant(dominantAllele),
       genotypes: dominantGenotypes,
       probability: dominantCount,
       percentage: `${(dominantCount * 100).toFixed(0)}%`,
     },
     {
-      phenotype: `隐性表型（不含 ${dominantAllele}）`,
+      phenotype: m.phenotypeRecessive(dominantAllele),
       genotypes: recessiveGenotypes,
       probability: recessiveCount,
       percentage: `${(recessiveCount * 100).toFixed(0)}%`,
@@ -115,8 +172,8 @@ export function punnettSquare(parentA: string, parentB: string, options: Punnett
   ];
 
   return {
-    parentA: normalizeGenotype(parentA),
-    parentB: normalizeGenotype(parentB),
+    parentA: normalizeGenotype(parentA, locale),
+    parentB: normalizeGenotype(parentB, locale),
     dominantAllele,
     offspring,
     phenotypes,
@@ -130,14 +187,15 @@ export interface DihybridResult {
   offspring: { genotype: string; probability: number; percentage: string }[];
 }
 
-export function dihybridCross(parentA: string, parentB: string): DihybridResult {
+export function dihybridCross(parentA: string, parentB: string, locale: Locale = 'zh'): DihybridResult {
+  const m = M[locale];
   // 每个亲本提供两个基因位点，格式如 "AaBb"。
   // 保留大小写，否则 AaBb 会被错误归一化为 AABB 而丢失杂合信息。
   const cleanA = parentA.trim();
   const cleanB = parentB.trim();
 
   if (!/^[A-Za-z]{4}$/.test(cleanA) || !/^[A-Za-z]{4}$/.test(cleanB)) {
-    throw new Error('双基因型必须由四个英文字母组成（如 AaBb），且不能包含空格、数字或符号。');
+    throw new Error(m.dihybridFormat);
   }
 
   // 每个亲本的配子类型（两个位点各取一个等位基因）
@@ -200,23 +258,24 @@ export interface ParentageResult {
 }
 
 // 解析 STR 等位基因，格式必须是「等位基因1/等位基因2」，如 12/15。
-export function parseStrAlleles(value: string, context = ''): string[] {
+export function parseStrAlleles(value: string, context = '', locale: Locale = 'zh'): string[] {
+  const m = M[locale];
   const cleaned = value.trim();
-  const prefix = context ? `${context}：` : '';
+  const prefix = context ? `${context}: ` : '';
   if (!cleaned) {
-    throw new Error(`${prefix}等位基因不能为空。`);
+    throw new Error(m.emptyAlleles(prefix));
   }
   if (!cleaned.includes('/')) {
-    throw new Error(`${prefix}请使用「等位基因1/等位基因2」格式，例如 12/15。`);
+    throw new Error(m.slashFormat(prefix));
   }
 
   const rawParts = cleaned.split('/');
   const parts = rawParts.map((part) => part.trim());
   if (parts.length !== 2 || parts.some((part) => !part)) {
-    throw new Error(`${prefix}必须恰好包含两个等位基因，格式如 12/15。`);
+    throw new Error(m.twoAlleles(prefix));
   }
   if (parts.some((part) => !/^[A-Za-z0-9.]+$/.test(part))) {
-    throw new Error(`${prefix}等位基因只能包含字母、数字或小数点。`);
+    throw new Error(m.alleleChars(prefix));
   }
   return parts;
 }
@@ -232,13 +291,15 @@ function canAssignParentalAlleles(offspring: string[], father: string[], mother:
 export function parentageCheck(
   father: Record<string, string>,
   mother: Record<string, string>,
-  offspring: Record<string, string>
+  offspring: Record<string, string>,
+  locale: Locale = 'zh'
 ): ParentageResult {
+  const m = M[locale];
   const loci = Object.keys(offspring);
   if (loci.length < 3) {
     return {
       status: 'insufficient',
-      message: '数据不足：亲缘鉴定至少需要 3 个 STR 位点的完整数据。',
+      message: m.insufficient,
     };
   }
 
@@ -247,9 +308,9 @@ export function parentageCheck(
     const motherRaw = mother[locus] ?? '';
     const offspringRaw = offspring[locus] ?? '';
 
-    const fatherAlleles = parseStrAlleles(fatherRaw, `位点「${locus}」的父本`);
-    const motherAlleles = parseStrAlleles(motherRaw, `位点「${locus}」的母本`);
-    const offspringAlleles = parseStrAlleles(offspringRaw, `位点「${locus}」的子代`);
+    const fatherAlleles = parseStrAlleles(fatherRaw, m.locusFather(locus), locale);
+    const motherAlleles = parseStrAlleles(motherRaw, m.locusMother(locus), locale);
+    const offspringAlleles = parseStrAlleles(offspringRaw, m.locusOffspring(locus), locale);
 
     const fatherMatch = offspringAlleles.some((allele) => fatherAlleles.includes(allele));
     const motherMatch = offspringAlleles.some((allele) => motherAlleles.includes(allele));
@@ -268,12 +329,12 @@ export function parentageCheck(
 
   const allConsistent = results.every((item) => item.consistent);
   const overallConsistency = allConsistent
-    ? '所有位点均与父母基因型相容，支持候选亲缘关系。'
-    : '存在位点不匹配，提示亲缘关系存疑或数据有误。';
+    ? m.overallConsistent
+    : m.overallInconsistent;
 
   return {
     status: 'sufficient',
-    message: `已完成 ${loci.length} 个位点的亲缘相容性分析。`,
+    message: m.parentageDone(loci.length),
     loci: results,
     overallConsistency,
   };

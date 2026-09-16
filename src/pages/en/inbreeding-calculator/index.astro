@@ -1,0 +1,161 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import { ecosystem } from '../../../data/entity';
+
+const title = 'Inbreeding Coefficient Calculator';
+const description = 'Pigeon inbreeding coefficient (F) calculator: enter the number of generations from each parent to the common ancestor and compute the theoretical inbreeding coefficient with the Wright path method to help assess how closely related a pairing is.';
+
+const pageUrl = `${ecosystem.tools}/en/inbreeding-calculator/`;
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'Pigeon Inbreeding Coefficient Calculator',
+    url: pageUrl,
+    description,
+    applicationCategory: 'EducationalApplication',
+    inLanguage: 'en',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${ecosystem.tools}/en/` },
+      { '@type': 'ListItem', position: 2, name: 'Inbreeding Coefficient Calculator', item: pageUrl },
+    ],
+  },
+];
+---
+
+<BaseLayout {title} {description} canonical="/en/inbreeding-calculator/" locale="en" jsonLd={jsonLd}>
+  <Header locale="en" />
+
+  <main id="main">
+    <section class="bg-gradient-to-br from-brand-900 to-brand-700 py-16 text-white">
+      <div class="container-x">
+        <nav class="text-sm text-brand-100">
+          <a href="/en/" class="hover:text-white">Home</a> / <span class="text-white">Inbreeding Coefficient Calculator</span>
+        </nav>
+        <h1 class="mt-4 text-4xl font-bold">Inbreeding Coefficient Calculator</h1>
+        <p class="mt-4 max-w-2xl text-lg text-brand-100">
+          Compute the theoretical inbreeding coefficient (F) with the Wright path method to assess how closely related the two parents of a pairing are.
+        </p>
+      </div>
+    </section>
+
+    <section class="container-x py-16">
+      <div class="mx-auto max-w-2xl">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label for="n1" class="block text-sm font-semibold text-gray-900">Parent A → common ancestor (generations)</label>
+            <input id="n1" type="number" min="0" max="12" value="1" class="tool-input mt-2" />
+            <p class="mt-1 text-xs text-gray-500">Number of generations from Parent A back to the common ancestor (not counting the ancestor itself)</p>
+          </div>
+          <div>
+            <label for="n2" class="block text-sm font-semibold text-gray-900">Parent B → common ancestor (generations)</label>
+            <input id="n2" type="number" min="0" max="12" value="1" class="tool-input mt-2" />
+            <p class="mt-1 text-xs text-gray-500">Number of generations from Parent B back to the common ancestor (not counting the ancestor itself)</p>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <label for="paths" class="block text-sm font-semibold text-gray-900">Number of paths to the common ancestor</label>
+          <input id="paths" type="number" min="1" max="8" value="1" class="tool-input mt-2" />
+          <p class="mt-1 text-xs text-gray-500">If the pedigree contains more than one common ancestor, enter the total number of independent paths (each path is calculated separately and the results are added together)</p>
+        </div>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button class="preset-btn rounded-full border border-brand-200 px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50" data-n1="0" data-n2="0" data-paths="1">Parent-offspring / full siblings</button>
+          <button class="preset-btn rounded-full border border-brand-200 px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50" data-n1="1" data-n2="1" data-paths="1">Half siblings / uncle-niece</button>
+          <button class="preset-btn rounded-full border border-brand-200 px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50" data-n1="2" data-n2="2" data-paths="1">First cousins</button>
+        </div>
+
+        <button id="calculate" class="btn-primary mt-6 w-full">Calculate</button>
+
+        <div id="result" class="mt-8 hidden">
+          <div class="card text-center">
+            <h2 class="text-lg font-bold text-gray-900">Theoretical inbreeding coefficient</h2>
+            <p id="f-value" class="mt-3 text-4xl font-bold text-brand-700"></p>
+            <p id="f-note" class="mt-2 text-sm text-gray-600"></p>
+          </div>
+          <div class="mt-4 rounded-lg bg-amber-50 p-4 text-xs text-amber-900">
+            <strong>Scientific disclaimer:</strong> the F value is a theoretical estimate derived from the pedigree and depends on how complete the pedigree records are. A higher inbreeding coefficient signals a risk of reduced genetic diversity, but actual breeding decisions should also take race results, health and the advice of a professional breeder into account.
+          </div>
+        </div>
+
+        <div id="error" class="mt-6 hidden rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"></div>
+
+        <div class="card mt-10">
+          <h2 class="text-lg font-bold text-gray-900">Reference values</h2>
+          <ul class="mt-3 space-y-2 text-sm text-gray-600">
+            <li><strong>25%</strong> — parent-offspring or full-sibling mating (F = 1/4)</li>
+            <li><strong>12.5%</strong> — half-sibling or uncle-niece mating (F = 1/8)</li>
+            <li><strong>6.25%</strong> — first-cousin mating (F = 1/16)</li>
+            <li><strong>3.125%</strong> — mating of cousins one generation removed (F = 1/32)</li>
+            <li><strong>0%</strong> — no common ancestor within the pedigree</li>
+          </ul>
+          <p class="mt-4 text-xs text-gray-500">
+            Formula: F = Σ (1/2)^(n1+n2+1). This calculator is for education and research reference only and does not constitute breeding advice.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer locale="en" />
+</BaseLayout>
+
+<script>
+  const n1Input = document.getElementById('n1');
+  const n2Input = document.getElementById('n2');
+  const pathsInput = document.getElementById('paths');
+  const result = document.getElementById('result');
+  const errorBox = document.getElementById('error');
+
+  function calculate() {
+    try {
+      const n1 = parseInt(n1Input.value, 10);
+      const n2 = parseInt(n2Input.value, 10);
+      const paths = parseInt(pathsInput.value, 10);
+      if (Number.isNaN(n1) || Number.isNaN(n2) || Number.isNaN(paths)) {
+        throw new Error('Invalid input: please enter numbers.');
+      }
+      if (n1 < 0 || n2 < 0 || n1 > 12 || n2 > 12) {
+        throw new Error('The number of generations must be between 0 and 12.');
+      }
+      if (paths < 1 || paths > 8) {
+        throw new Error('The number of paths must be between 1 and 8.');
+      }
+      const f = paths * Math.pow(0.5, n1 + n2 + 1);
+      const pct = (f * 100).toFixed(2).replace(/\.?0+$/, '');
+      document.getElementById('f-value').textContent = `${pct}%`;
+      let note = 'No common ancestor within the pedigree, so the theoretical inbreeding coefficient is 0.';
+      if (f >= 0.25) note = 'Closely related (equivalent to a parent-offspring or full-sibling level); assess the pairing carefully in a breeding programme.';
+      else if (f >= 0.125) note = 'Fairly closely related (equivalent to a half-sibling or uncle-niece level).';
+      else if (f >= 0.0625) note = 'Moderately related (equivalent to a first-cousin level).';
+      else if (f > 0) note = 'Distantly related, with a low level of inbreeding.';
+      document.getElementById('f-note').textContent = note;
+      result.classList.remove('hidden');
+      errorBox.classList.add('hidden');
+    } catch (error) {
+      errorBox.textContent = error instanceof Error ? error.message : 'Invalid input. Please check your entries and try again.';
+      errorBox.classList.remove('hidden');
+      result.classList.add('hidden');
+    }
+  }
+
+  document.getElementById('calculate').addEventListener('click', calculate);
+  document.querySelectorAll('.preset-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      n1Input.value = btn.dataset.n1;
+      n2Input.value = btn.dataset.n2;
+      pathsInput.value = btn.dataset.paths;
+      calculate();
+    });
+  });
+
+  calculate();
+</script>

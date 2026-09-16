@@ -1,31 +1,32 @@
 ---
 import { ecosystem } from '../data/entity';
+import { UI, type Locale } from '../i18n/ui';
+import { localizedPath } from '../i18n/url';
 
-const nav = [
-  { label: '首页', href: '/' },
-  { label: '基因查询', href: '/gene-lookup/' },
-  { label: '育种计算器', href: '/breeding-calculator/' },
-  { label: '亲缘计算器', href: '/parentage-calculator/' },
-];
+interface Props {
+  locale?: Locale;
+}
 
-const sisterSites = [
-  { label: '主站', href: ecosystem.main },
-  { label: '遗传库', href: ecosystem.genetics },
-  { label: '健康库', href: ecosystem.health },
-  { label: '科研中心', href: ecosystem.research },
-];
+const { locale = 'zh' } = Astro.props;
+const t = UI[locale];
+const isEn = locale === 'en';
+
+const nav = t.nav.map((item) => ({ label: item.label, href: localizedPath(item.href, locale) }));
+const sisterSites = t.sisterSites.map((s) => ({ label: s.label, href: ecosystem[s.href as keyof typeof ecosystem] }));
+const otherLocale: Locale = isEn ? 'zh' : 'en';
+const switchHref = localizedPath(Astro.url.pathname, otherLocale);
 ---
 
 <header class="sticky top-0 z-40 border-b border-gray-100 bg-white/95 backdrop-blur">
   <div class="container-x flex h-16 items-center justify-between gap-4">
-    <a href="/" class="flex items-center gap-2">
+    <a href={localizedPath('/', locale)} class="flex items-center gap-2">
       <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-lg font-bold text-white">🛠️</span>
       <span class="text-sm font-bold leading-tight text-gray-900 sm:text-base">
         PigeonGene<br class="hidden sm:block" /> <span class="text-brand-700">Tools</span>
       </span>
     </a>
 
-    <nav class="hidden items-center gap-1 xl:flex" aria-label="主导航">
+    <nav class="hidden items-center gap-1 xl:flex" aria-label={t.ariaMainNav}>
       {nav.map((item) => (
         <a href={item.href} class="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-brand-50 hover:text-brand-700">
           {item.label}
@@ -34,10 +35,18 @@ const sisterSites = [
     </nav>
 
     <div class="flex items-center gap-2">
-      <a href={ecosystem.main} class="btn-primary hidden sm:inline-flex" rel="noopener">
-        检测服务
+      <a
+        href={switchHref}
+        hreflang={otherLocale === 'en' ? 'en' : 'zh'}
+        lang={otherLocale === 'en' ? 'en' : 'zh-CN'}
+        class="hidden rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:border-brand-300 hover:text-brand-700 sm:inline-flex"
+      >
+        {isEn ? '中文' : 'English'}
       </a>
-      <button id="menu-toggle" class="xl:hidden rounded-lg p-2 text-gray-600 hover:bg-gray-100" aria-label="打开菜单" aria-expanded="false" aria-controls="mobile-menu">
+      <a href={ecosystem.main} class="btn-primary hidden sm:inline-flex" rel="noopener">
+        {t.cta}
+      </a>
+      <button id="menu-toggle" class="xl:hidden rounded-lg p-2 text-gray-600 hover:bg-gray-100" aria-label={t.ariaOpenMenu} aria-expanded="false" aria-controls="mobile-menu">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
       </button>
     </div>
@@ -45,12 +54,15 @@ const sisterSites = [
 
   <!-- mobile menu -->
   <div id="mobile-menu" class="hidden border-t border-gray-100 xl:hidden">
-    <nav class="container-x flex flex-col gap-1 py-3" aria-label="移动导航">
+    <nav class="container-x flex flex-col gap-1 py-3" aria-label={t.ariaMobileNav}>
       {nav.map((item) => (
         <a href={item.href} class="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-brand-50">{item.label}</a>
       ))}
+      <a href={switchHref} hreflang={otherLocale === 'en' ? 'en' : 'zh'} class="rounded-lg px-3 py-2 text-sm font-medium text-brand-700 hover:bg-brand-50">
+        {isEn ? '中文' : 'English'}
+      </a>
       <div class="mt-2 border-t border-gray-100 pt-3">
-        <p class="px-3 text-xs font-semibold uppercase text-gray-400">PigeonGene 生态</p>
+        <p class="px-3 text-xs font-semibold uppercase text-gray-400">{t.ecosystemTitle}</p>
         {sisterSites.map((s) => (
           <a href={s.href} class="block rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" rel="noopener">{s.label}</a>
         ))}

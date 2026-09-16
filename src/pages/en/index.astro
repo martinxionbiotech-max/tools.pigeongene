@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { ecosystem } from '../../data/entity';
+
+const title = 'Online Tools';
+const description = 'Free online racing pigeon genetics and DNA utilities: gene lookup, breeding calculator, parentage calculator, inbreeding coefficient calculator.';
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'PigeonGene Online Tools',
+    url: ecosystem.tools + '/en/',
+    description,
+    inLanguage: 'en',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'PigeonGene Tools',
+    url: ecosystem.tools + '/en/',
+    applicationCategory: 'ScienceApplication',
+    operatingSystem: 'Web',
+    description: 'Online racing pigeon genetics and DNA utilities: gene lookup, breeding calculator, parentage calculator and inbreeding coefficient calculator.',
+    inLanguage: 'en',
+  },
+];
+
+const tools = [
+  { icon: '🔍', title: 'Gene Lookup', desc: 'Enter a gene symbol (such as LDHA) to look up its function, associations and references.', href: '/en/gene-lookup/' },
+  { icon: '🥚', title: 'Breeding Calculator', desc: 'Independent-assortment inheritance calculation for two gene loci.', href: '/en/breeding-calculator/' },
+  { icon: '👨‍👩‍👧', title: 'Parentage Calculator', desc: 'Parentage consistency analysis based on STR markers.', href: '/en/parentage-calculator/' },
+  { icon: '🧬', title: 'Inbreeding Coefficient Calculator', desc: 'Theoretical inbreeding coefficient (F) by the Wright path method, used to assess how closely two birds are related.', href: '/en/inbreeding-calculator/' },
+];
+---
+
+<BaseLayout {title} {description} locale="en" jsonLd={jsonLd}>
+  <Header locale="en" />
+
+  <main id="main">
+    <section class="relative overflow-hidden bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700 text-white">
+      <div class="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand-500/20 blur-3xl" aria-hidden="true"></div>
+      <div class="container-x relative py-20 lg:py-24">
+        <p class="inline-flex items-center rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium">
+          PigeonGene Tools · Online racing pigeon genetics & DNA utilities
+        </p>
+        <h1 class="mt-6 text-4xl font-bold leading-tight sm:text-5xl">
+          Online Genetics & DNA Tools
+        </h1>
+        <p class="mt-5 max-w-2xl text-lg text-brand-100">
+          Gene lookup, genetic calculations, breeding prediction and parentage analysis, helping fanciers and breeders read genetic information more scientifically.
+        </p>
+        <p class="mt-3 max-w-2xl text-brand-100/90">
+          <b>Scientific statement</b>: all calculations are based on Mendelian inheritance; the results are theoretical genetic probabilities only and do not predict actual race performance.
+        </p>
+      </div>
+    </section>
+
+    <section class="container-x py-16">
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {tools.map((t) => (
+          <a href={t.href} class="group card hover:border-brand-300">
+            <div class="text-3xl">{t.icon}</div>
+            <h2 class="mt-3 text-lg font-bold text-gray-900 group-hover:text-brand-700">{t.title}</h2>
+            <p class="mt-2 text-sm text-gray-600">{t.desc}</p>
+          </a>
+        ))}
+      </div>
+    </section>
+  </main>
+
+  <Footer locale="en" />
+</BaseLayout>

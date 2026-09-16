@@ -5,6 +5,8 @@ import '@fontsource/inter/latin-500.css';
 import '@fontsource/inter/latin-600.css';
 import '@fontsource/inter/latin-700.css';
 import { org, ecosystem, sameAs, services } from '../data/entity';
+import { UI, ENTITY_EN, type Locale } from '../i18n/ui';
+import { localizedPath } from '../i18n/url';
 
 interface Props {
   title: string;
@@ -13,6 +15,9 @@ interface Props {
   jsonLd?: Record<string, any>[];
   type?: string;
   ogImage?: string;
+  locale?: Locale;
+  /** 该页是否有对应语言版本；部分页面（404 等）没有时传 false，避免输出指向死链的 hreflang */
+  hreflang?: boolean;
 }
 
 const {
@@ -22,28 +27,48 @@ const {
   jsonLd = [],
   type = 'website',
   ogImage = '/og-default.png',
+  locale = 'zh',
+  hreflang = true,
 } = Astro.props;
 
 const siteUrl = ecosystem.tools;
-const fullTitle = title.includes('PigeonGene Tools') ? title : `${title} | PigeonGene Tools`;
+const t = UI[locale];
+const isEn = locale === 'en';
+const htmlLang = isEn ? 'en' : 'zh-CN';
+const brand = 'PigeonGene Tools';
+const fullTitle = title.includes(brand) ? title : `${title} | ${brand}`;
+
+const pathname = Astro.url.pathname;
+const canonicalUrl = canonical ? new URL(canonical, siteUrl).href : new URL(pathname, siteUrl).href;
+const zhHref = new URL(localizedPath(pathname, 'zh'), siteUrl).href;
+const enHref = new URL(localizedPath(pathname, 'en'), siteUrl).href;
+
+const orgName = isEn ? ENTITY_EN.org.name : org.name;
+const orgDescription = isEn ? ENTITY_EN.org.description : org.description;
+const orgAward = isEn ? ENTITY_EN.org.award : org.award;
+const orgKnowsAbout = isEn ? ENTITY_EN.org.knowsAbout : org.knowsAbout;
+const orgAddress = isEn ? ENTITY_EN.org.address : org.address;
+const websiteName = isEn ? ENTITY_EN.website.name : 'PigeonGene Tools — 赛鸽遗传与 DNA 在线工具';
+const websiteDescription = isEn ? ENTITY_EN.website.description : description;
+const localizedServices = isEn ? ENTITY_EN.services : services;
 
 const baseJsonLd = [
   {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     '@id': `${siteUrl}/#organization`,
-    name: org.name,
+    name: orgName,
     alternateName: org.alternateName,
     legalName: org.legalName,
     url: org.url,
     logo: org.logo,
-    description: org.description,
+    description: orgDescription,
     foundingDate: org.foundingDate,
     numberOfEmployees: org.numberOfEmployees,
-    award: org.award,
-    knowsAbout: org.knowsAbout,
+    award: orgAward,
+    knowsAbout: orgKnowsAbout,
     areaServed: org.areaServed,
-    address: { '@type': 'PostalAddress', ...org.address },
+    address: { '@type': 'PostalAddress', ...orgAddress },
     contactPoint: {
       '@type': 'ContactPoint',
       email: org.email,
@@ -51,19 +76,19 @@ const baseJsonLd = [
       contactType: 'customer service',
     },
     sameAs,
-    makesOffer: services.map((s) => ({ '@id': `${siteUrl}/#${s.slug}` })),
+    makesOffer: localizedServices.map((s) => ({ '@id': `${siteUrl}/#${s.slug}` })),
   },
   {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     '@id': `${siteUrl}/#website`,
     url: siteUrl + '/',
-    name: 'PigeonGene Tools — 赛鸽遗传与 DNA 在线工具',
-    description,
+    name: websiteName,
+    description: websiteDescription,
     publisher: { '@id': `${siteUrl}/#organization` },
-    inLanguage: 'zh-CN',
+    inLanguage: htmlLang,
   },
-  ...services.map((s) => ({
+  ...localizedServices.map((s) => ({
     '@context': 'https://schema.org',
     '@type': 'Service',
     '@id': `${siteUrl}/#${s.slug}`,
@@ -74,34 +99,38 @@ const baseJsonLd = [
     areaServed: 'Worldwide',
     url: 'https://senopigeon.com/',
     category: 'Genetic Testing',
-    inLanguage: 'zh-CN',
+    inLanguage: htmlLang,
   })),
 ];
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang={htmlLang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical ? new URL(canonical, siteUrl).href : siteUrl + '/'} />
+    <link rel="canonical" href={canonicalUrl} />
+    {hreflang && <link rel="alternate" hreflang="zh" href={zhHref} />}
+    {hreflang && <link rel="alternate" hreflang="en" href={enHref} />}
+    {hreflang && <link rel="alternate" hreflang="x-default" href={zhHref} />}
     <link rel="icon" type="image/png" href="/favicon.png" />
 
     <meta property="og:type" content={type} />
-    <meta property="og:site_name" content="PigeonGene Tools" />
+    <meta property="og:site_name" content={brand} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonical ? new URL(canonical, siteUrl).href : siteUrl + '/'} />
+    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={new URL(ogImage, siteUrl).href} />
-    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:locale" content={isEn ? 'en_US' : 'zh_CN'} />
+    <meta property="og:locale:alternate" content={isEn ? 'zh_CN' : 'en_US'} />
     <meta name="twitter:card" content="summary_large_image" />
 
     <script type="application/ld+json" set:html={JSON.stringify([...baseJsonLd, ...jsonLd])} />
   </head>
   <body class="min-h-screen bg-white">
-    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:shadow-lg">跳到主要内容</a>
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:shadow-lg">{t.skipToMain}</a>
     <slot />
   </body>
 </html>

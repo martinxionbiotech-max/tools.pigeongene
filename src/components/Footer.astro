@@ -1,19 +1,22 @@
 ---
 import { org, ecosystem } from '../data/entity';
+import { UI, ENTITY_EN, type Locale } from '../i18n/ui';
+import { localizedPath } from '../i18n/url';
 
-const knowledgeNav = [
-  { label: '基因查询', href: '/gene-lookup/' },
-  { label: '育种计算器', href: '/breeding-calculator/' },
-  { label: '亲缘计算器', href: '/parentage-calculator/' },
-  { label: '术语表', href: '/glossary/' },
-];
+interface Props {
+  locale?: Locale;
+}
 
-const sisterSites = [
-  { label: '主站（检测服务）', href: ecosystem.main },
-  { label: '遗传知识库', href: ecosystem.genetics },
-  { label: '健康知识库', href: ecosystem.health },
-  { label: '科研中心', href: ecosystem.research },
-];
+const { locale = 'zh' } = Astro.props;
+const t = UI[locale];
+const isEn = locale === 'en';
+
+const knowledgeNav = t.footer.knowledge.map((n) => ({ label: n.label, href: localizedPath(n.href, locale) }));
+const sisterSites = t.footer.sisterSites.map((s) => ({ label: s.label, href: ecosystem[s.href as keyof typeof ecosystem] }));
+const orgName = isEn ? ENTITY_EN.org.name : org.name;
+const tagline = t.footer.tagline.replace('{org}', orgName);
+const otherLocale: Locale = isEn ? 'zh' : 'en';
+const switchHref = localizedPath(Astro.url.pathname, otherLocale);
 ---
 
 <footer class="border-t border-gray-200 bg-gray-50">
@@ -24,12 +27,20 @@ const sisterSites = [
         <span class="font-bold text-gray-900">PigeonGene <span class="text-brand-700">Tools</span></span>
       </div>
       <p class="mt-3 text-sm leading-relaxed text-gray-600">
-        赛鸽在线工具，由 {org.name} 提供技术支持。
+        {tagline}
+      </p>
+      <p class="mt-3 text-sm">
+        <a
+          href={switchHref}
+          hreflang={otherLocale === 'en' ? 'en' : 'zh'}
+          lang={otherLocale === 'en' ? 'en' : 'zh-CN'}
+          class="hover:text-brand-600"
+        >{isEn ? '中文版' : 'English version'}</a>
       </p>
     </div>
 
     <div>
-      <h2 class="text-sm font-semibold text-gray-900">知识栏目</h2>
+      <h2 class="text-sm font-semibold text-gray-900">{t.footer.knowledgeTitle}</h2>
       <ul class="mt-4 space-y-2 text-sm text-gray-600">
         {knowledgeNav.map((n) => (
           <li><a href={n.href} class="hover:text-brand-600">{n.label}</a></li>
@@ -38,7 +49,7 @@ const sisterSites = [
     </div>
 
     <div>
-      <h2 class="text-sm font-semibold text-gray-900">PigeonGene 生态</h2>
+      <h2 class="text-sm font-semibold text-gray-900">{t.footer.ecosystemTitle}</h2>
       <ul class="mt-4 space-y-2 text-sm text-gray-600">
         {sisterSites.map((s) => (
           <li><a href={s.href} class="hover:text-brand-600" rel="noopener">{s.label}</a></li>
@@ -47,21 +58,21 @@ const sisterSites = [
     </div>
 
     <div>
-      <h2 class="text-sm font-semibold text-gray-900">帮助与联系</h2>
+      <h2 class="text-sm font-semibold text-gray-900">{t.footer.helpTitle}</h2>
       <ul class="mt-4 space-y-2 text-sm text-gray-600">
-        <li><a href={`${ecosystem.main}/faq/`} class="hover:text-brand-600" rel="noopener">常见问题</a></li>
-        <li><a href="/glossary/" class="hover:text-brand-600">术语表</a></li>
+        <li><a href={`${ecosystem.main}${isEn ? '/en/faq/' : '/faq/'}`} class="hover:text-brand-600" rel="noopener">{t.footer.faq}</a></li>
+        <li><a href={localizedPath('/glossary/', locale)} class="hover:text-brand-600">{t.footer.glossary}</a></li>
         <li><span aria-hidden="true">📧</span> <a href={`mailto:${org.email}`} class="hover:text-brand-600">{org.email}</a></li>
-        <li><span aria-hidden="true">📞</span> <a href="tel:+8615612372623" class="hover:text-brand-600">+86 15612372623</a></li>
+        <li><span aria-hidden="true">📞</span> <a href="tel:+861****2623" class="hover:text-brand-600">+86 15612372623</a></li>
       </ul>
     </div>
   </div>
 
   <div class="border-t border-gray-200">
     <div class="container-x flex flex-col items-center justify-between gap-3 py-6 text-xs text-gray-500 sm:flex-row">
-      <p>© 2026 {org.name} · 保留所有权利</p>
+      <p>© 2026 {orgName} · {t.footer.rights}</p>
       <p class="flex flex-wrap gap-3">
-        <a href={ecosystem.main} class="hover:text-brand-600" rel="noopener">senopigeon.com</a>
+        <a href={ecosystem.main} class="hover:text-brand-600" rel="noopener">{t.footer.mainSite}</a>
         <span aria-hidden="true">·</span>
         <a href="/llms.txt" class="hover:text-brand-600">llms.txt</a>
         <span aria-hidden="true">·</span>

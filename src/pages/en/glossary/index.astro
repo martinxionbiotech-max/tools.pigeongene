@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import { ecosystem } from '../../../data/entity';
+
+const title = 'Glossary';
+const description = 'Glossary of genetics terms used by the PigeonGene Tools utilities: genotype, phenotype, allele, Punnett square, Mendelian inheritance and heritability.';
+
+const pageUrl = `${ecosystem.tools}/en/glossary/`;
+
+const terms = [
+  { term: 'Genotype', en: '', def: 'The combination of alleles an individual carries at a particular gene locus.' },
+  { term: 'Phenotype', en: '', def: 'The observable characteristics an individual shows, determined by genotype and environment together.' },
+  { term: 'Allele', en: '', def: 'A different version of a gene at the same gene locus.' },
+  { term: 'Homozygote', en: '', def: 'An individual whose two alleles at a gene locus are identical (such as AA, aa).' },
+  { term: 'Heterozygote', en: '', def: 'An individual whose two alleles at a gene locus differ (such as Aa).' },
+  { term: 'Dominant', en: '', def: 'An allele whose trait is expressed even in the heterozygous state.' },
+  { term: 'Recessive', en: '', def: 'An allele whose trait is expressed only in the homozygous state.' },
+  { term: 'Punnett Square', en: '', def: 'A genetics diagram used to predict the genotype and phenotype probabilities of the offspring.' },
+  { term: 'Mendelian Inheritance', en: '', def: 'The inheritance rules revealed by Mendel, including the law of segregation and the law of independent assortment.' },
+  { term: 'Law of Independent Assortment', en: '', def: 'Alleles at different gene loci are distributed independently when gametes form.' },
+  { term: 'STR Marker', en: 'Short Tandem Repeat', def: 'A short tandem repeat sequence whose repeat number varies greatly between individuals, used for parentage testing.' },
+  { term: 'Parentage Consistency', en: '', def: 'The degree to which every allele of the offspring can be traced to a source in the genotypes of its parents.' },
+  { term: 'DNA Identity', en: '', def: 'An individual-specific genetic fingerprint profile built from STR markers.' },
+  { term: 'SNP', en: 'Single Nucleotide Polymorphism', def: 'A single-base variation in the genome; a core marker for genetic testing.' },
+  { term: 'Quantitative Trait', en: '', def: 'A trait influenced by many genes and by the environment together, showing a continuous distribution (such as racing performance).' },
+  { term: 'Heritability', en: '', def: 'The proportion of phenotypic variation explained by genetic factors; it affects the expected response to selection.' },
+  { term: 'Inbreeding Coefficient (F)', en: '', def: 'The probability that an individual carries two alleles that are identical by descent, measuring the degree of inbreeding.' },
+  { term: 'Association', en: '', def: 'A statistical association between a genotype and a trait, which is not the same as causation; association ≠ causation is the first principle when interpreting a test report.' },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'DefinedTermSet',
+    name: 'PigeonGene Tools Glossary',
+    url: pageUrl,
+    inLanguage: 'en',
+  },
+];
+---
+
+<BaseLayout {title} {description} canonical="/en/glossary/" locale="en" jsonLd={jsonLd}>
+  <Header locale="en" />
+  <main id="main">
+    <section class="bg-gradient-to-br from-brand-900 to-brand-700 py-16 text-white">
+      <div class="container-x">
+        <nav class="text-sm text-brand-100"><a href="/en/" class="hover:text-white">Home</a> / <span class="text-white">Glossary</span></nav>
+        <h1 class="mt-4 text-4xl font-bold">Glossary</h1>
+      </div>
+    </section>
+    <section class="container-x py-16">
+      <div class="mx-auto max-w-3xl divide-y divide-gray-100">
+        {terms.map((t) => (
+          <div class="py-5">
+            <h2 class="text-lg font-bold text-gray-900">
+              {t.term}
+              {t.en && <span class="ml-2 text-sm font-normal text-gray-500">{t.en}</span>}
+            </h2>
+            <p class="mt-1 text-gray-700">{t.def}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  </main>
+  <Footer locale="en" />
+</BaseLayout>

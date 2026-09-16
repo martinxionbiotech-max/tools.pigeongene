@@ -1,0 +1,204 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import { ecosystem } from '../../../data/entity';
+import { geneDatabase } from '../../../data/genes';
+
+const title = 'Breeding Calculator';
+const description = 'A two-locus free-combination calculator based on eight flight performance genes: choose two gene loci and the parental genotypes to compute the theoretical probability distribution of offspring genotype combinations.';
+
+const pageUrl = `${ecosystem.tools}/en/breeding-calculator/`;
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'Pigeon Breeding Calculator',
+    url: pageUrl,
+    description,
+    applicationCategory: 'EducationalApplication',
+    inLanguage: 'en',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${ecosystem.tools}/en/` },
+      { '@type': 'ListItem', position: 2, name: 'Breeding Calculator', item: pageUrl },
+    ],
+  },
+];
+
+const genotypeOptions = [
+  { value: 'AA', label: 'AA (homozygous dominant)' },
+  { value: 'Aa', label: 'Aa (heterozygous)' },
+  { value: 'aa', label: 'aa (homozygous recessive)' },
+];
+---
+
+<BaseLayout {title} {description} canonical="/en/breeding-calculator/" locale="en" jsonLd={jsonLd}>
+  <Header locale="en" />
+
+  <main id="main">
+    <section class="bg-gradient-to-br from-brand-900 to-brand-700 py-16 text-white">
+      <div class="container-x">
+        <nav class="text-sm text-brand-100">
+          <a href="/en/" class="hover:text-white">Home</a> / <span class="text-white">Breeding Calculator</span>
+        </nav>
+        <h1 class="mt-4 text-4xl font-bold">Breeding Calculator</h1>
+        <p class="mt-4 max-w-2xl text-lg text-brand-100">Two-locus independent-assortment inheritance calculator based on eight flight performance genes.</p>
+      </div>
+    </section>
+
+    <section class="container-x py-16">
+      <div class="mx-auto max-w-2xl">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label for="locus-1" class="block text-sm font-semibold text-gray-900">Gene locus 1</label>
+            <select id="locus-1" class="tool-input mt-2">
+              {geneDatabase.map((gene) => (
+                <option value={gene.code} selected={gene.code === 'LDHA'}>{gene.en} ({gene.code})</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label for="locus-2" class="block text-sm font-semibold text-gray-900">Gene locus 2</label>
+            <select id="locus-2" class="tool-input mt-2">
+              {geneDatabase.map((gene) => (
+                <option value={gene.code} selected={gene.code === 'MSTN'}>{gene.en} ({gene.code})</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <p class="mt-2 text-xs text-gray-500">Eight flight performance genes: LDHA, DRD4, CRY1, MSTN, LRP8, GSR, CASK, F-KER. We recommend choosing two different gene loci for the combination.</p>
+
+        <div class="card-no-hover mt-6">
+          <h2 class="text-base font-bold text-gray-900">Parent A</h2>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="parent-a-locus1" class="block text-sm font-semibold text-gray-900">Locus 1 <span id="locus1-code-a">LDHA</span> genotype</label>
+              <select id="parent-a-locus1" class="tool-input mt-2">
+                {genotypeOptions.map((option) => (
+                  <option value={option.value} selected={option.value === 'Aa'}>{option.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label for="parent-a-locus2" class="block text-sm font-semibold text-gray-900">Locus 2 <span id="locus2-code-a">MSTN</span> genotype</label>
+              <select id="parent-a-locus2" class="tool-input mt-2">
+                {genotypeOptions.map((option) => (
+                  <option value={option.value} selected={option.value === 'Aa'}>{option.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-no-hover mt-4">
+          <h2 class="text-base font-bold text-gray-900">Parent B</h2>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="parent-b-locus1" class="block text-sm font-semibold text-gray-900">Locus 1 <span id="locus1-code-b">LDHA</span> genotype</label>
+              <select id="parent-b-locus1" class="tool-input mt-2">
+                {genotypeOptions.map((option) => (
+                  <option value={option.value} selected={option.value === 'Aa'}>{option.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label for="parent-b-locus2" class="block text-sm font-semibold text-gray-900">Locus 2 <span id="locus2-code-b">MSTN</span> genotype</label>
+              <select id="parent-b-locus2" class="tool-input mt-2">
+                {genotypeOptions.map((option) => (
+                  <option value={option.value} selected={option.value === 'Aa'}>{option.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button id="calculate" class="btn-primary mt-6 w-full">Calculate</button>
+
+        <div id="result" class="mt-8 hidden">
+          <div class="card">
+            <h2 class="text-lg font-bold text-gray-900">Offspring genotype combination probabilities</h2>
+            <div id="results" class="mt-4 grid gap-2 sm:grid-cols-2"></div>
+          </div>
+          <div class="mt-4 rounded-lg bg-amber-50 p-4 text-xs text-amber-900">
+            <strong>Scientific disclaimer:</strong> the values above are theoretical inheritance probabilities and do not predict actual race performance.
+          </div>
+        </div>
+
+        <div id="error" class="mt-6 hidden rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"></div>
+      </div>
+    </section>
+  </main>
+
+  <Footer locale="en" />
+</BaseLayout>
+
+<script>
+  import { dihybridCross } from '../../../lib/genetics';
+  import { geneDatabase } from '../../../data/genes';
+
+  const geneByCode = new Map(geneDatabase.map((gene) => [gene.code, gene]));
+  const locus1 = document.getElementById('locus-1');
+  const locus2 = document.getElementById('locus-2');
+  const parentALocus1 = document.getElementById('parent-a-locus1');
+  const parentALocus2 = document.getElementById('parent-a-locus2');
+  const parentBLocus1 = document.getElementById('parent-b-locus1');
+  const parentBLocus2 = document.getElementById('parent-b-locus2');
+  const result = document.getElementById('result');
+  const errorBox = document.getElementById('error');
+
+  function updateLocusLabels() {
+    const gene1 = geneByCode.get(locus1.value);
+    const gene2 = geneByCode.get(locus2.value);
+    document.getElementById('locus1-code-a').textContent = gene1?.code || locus1.value;
+    document.getElementById('locus1-code-b').textContent = gene1?.code || locus1.value;
+    document.getElementById('locus2-code-a').textContent = gene2?.code || locus2.value;
+    document.getElementById('locus2-code-b').textContent = gene2?.code || locus2.value;
+  }
+
+  function calculate() {
+    try {
+      const gene1 = geneByCode.get(locus1.value)?.code || locus1.value;
+      const gene2 = geneByCode.get(locus2.value)?.code || locus2.value;
+      const parentA = `${parentALocus1.value}${parentALocus2.value}`;
+      const parentB = `${parentBLocus1.value}${parentBLocus2.value}`;
+      const outcome = dihybridCross(parentA, parentB, 'en');
+
+      document.getElementById('results').innerHTML = outcome.offspring.map((item) => {
+        const firstGenotype = item.genotype.slice(0, 2);
+        const secondGenotype = item.genotype.slice(2, 4);
+        return `<div class="flex items-start justify-between gap-3 rounded-lg bg-gray-50 px-3 py-2">
+          <span class="font-mono text-sm font-semibold text-gray-900">${gene1}:${firstGenotype} + ${gene2}:${secondGenotype}</span>
+          <span class="font-bold text-brand-700">${item.percentage}</span>
+        </div>`;
+      }).join('');
+
+      result.classList.remove('hidden');
+      errorBox.classList.add('hidden');
+    } catch (error) {
+      errorBox.textContent = error instanceof Error ? error.message : 'Invalid input. Please check your entries and try again.';
+      errorBox.classList.remove('hidden');
+      result.classList.add('hidden');
+    }
+  }
+
+  document.getElementById('calculate').addEventListener('click', calculate);
+  locus1.addEventListener('change', () => {
+    updateLocusLabels();
+    calculate();
+  });
+  locus2.addEventListener('change', () => {
+    updateLocusLabels();
+    calculate();
+  });
+  [parentALocus1, parentALocus2, parentBLocus1, parentBLocus2].forEach((input) => {
+    input.addEventListener('change', calculate);
+  });
+
+  updateLocusLabels();
+  calculate();
+</script>
