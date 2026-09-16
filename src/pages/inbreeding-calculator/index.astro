@@ -1,0 +1,161 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { ecosystem } from '../../data/entity';
+
+const title = '近交系数计算器';
+const description = '赛鸽近交系数（F）计算器：输入亲本到共同祖先的世代数，按 Wright 路径法计算理论近交系数，辅助评估配对的血缘亲疏。';
+
+const pageUrl = `${ecosystem.tools}/inbreeding-calculator/`;
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: '赛鸽近交系数计算器',
+    url: pageUrl,
+    description,
+    applicationCategory: 'EducationalApplication',
+    inLanguage: 'zh-CN',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: '首页', item: `${ecosystem.tools}/` },
+      { '@type': 'ListItem', position: 2, name: '近交系数计算器', item: pageUrl },
+    ],
+  },
+];
+---
+
+<BaseLayout {title} {description} canonical="/inbreeding-calculator/" jsonLd={jsonLd}>
+  <Header />
+
+  <main id="main">
+    <section class="bg-gradient-to-br from-brand-900 to-brand-700 py-16 text-white">
+      <div class="container-x">
+        <nav class="text-sm text-brand-100">
+          <a href="/" class="hover:text-white">首页</a> / <span class="text-white">近交系数计算器</span>
+        </nav>
+        <h1 class="mt-4 text-4xl font-bold">近交系数计算器</h1>
+        <p class="mt-4 max-w-2xl text-lg text-brand-100">
+          按 Wright 路径法计算理论近交系数（F），评估配对双方的血缘亲疏程度。
+        </p>
+      </div>
+    </section>
+
+    <section class="container-x py-16">
+      <div class="mx-auto max-w-2xl">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label for="n1" class="block text-sm font-semibold text-gray-900">亲本 A → 共同祖先（世代数）</label>
+            <input id="n1" type="number" min="0" max="12" value="1" class="tool-input mt-2" />
+            <p class="mt-1 text-xs text-gray-500">从亲本 A 上溯到共同祖先所经过的世代数（不含祖先本身）</p>
+          </div>
+          <div>
+            <label for="n2" class="block text-sm font-semibold text-gray-900">亲本 B → 共同祖先（世代数）</label>
+            <input id="n2" type="number" min="0" max="12" value="1" class="tool-input mt-2" />
+            <p class="mt-1 text-xs text-gray-500">从亲本 B 上溯到共同祖先所经过的世代数（不含祖先本身）</p>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <label for="paths" class="block text-sm font-semibold text-gray-900">共同祖先路径数</label>
+          <input id="paths" type="number" min="1" max="8" value="1" class="tool-input mt-2" />
+          <p class="mt-1 text-xs text-gray-500">若系谱中存在多个共同祖先，输入独立路径的总数（每条路径单独计算后求和）</p>
+        </div>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button class="preset-btn rounded-full border border-brand-200 px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50" data-n1="0" data-n2="0" data-paths="1">亲子 / 全同胞</button>
+          <button class="preset-btn rounded-full border border-brand-200 px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50" data-n1="1" data-n2="1" data-paths="1">半同胞 / 叔侄</button>
+          <button class="preset-btn rounded-full border border-brand-200 px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50" data-n1="2" data-n2="2" data-paths="1">表（堂）兄妹</button>
+        </div>
+
+        <button id="calculate" class="btn-primary mt-6 w-full">计算</button>
+
+        <div id="result" class="mt-8 hidden">
+          <div class="card text-center">
+            <h2 class="text-lg font-bold text-gray-900">理论近交系数</h2>
+            <p id="f-value" class="mt-3 text-4xl font-bold text-brand-700"></p>
+            <p id="f-note" class="mt-2 text-sm text-gray-600"></p>
+          </div>
+          <div class="mt-4 rounded-lg bg-amber-50 p-4 text-xs text-amber-900">
+            <strong>科学声明：</strong>F 值为系谱推算的理论值，受系谱记录完整性影响。近交系数升高提示遗传多样性下降风险，但具体育种决策请结合赛绩、健康与专业育种师建议综合判断。
+          </div>
+        </div>
+
+        <div id="error" class="mt-6 hidden rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"></div>
+
+        <div class="card mt-10">
+          <h2 class="text-lg font-bold text-gray-900">参考对照</h2>
+          <ul class="mt-3 space-y-2 text-sm text-gray-600">
+            <li><strong>25%</strong> — 亲子交配、全同胞交配（F=1/4）</li>
+            <li><strong>12.5%</strong> — 半同胞交配、叔侄交配（F=1/8）</li>
+            <li><strong>6.25%</strong> — 表（堂）兄妹交配（F=1/16）</li>
+            <li><strong>3.125%</strong> — 隔代表亲交配（F=1/32）</li>
+            <li><strong>0%</strong> — 系谱内无共同祖先</li>
+          </ul>
+          <p class="mt-4 text-xs text-gray-500">
+            计算公式：F = Σ (1/2)^(n1+n2+1)。本计算器仅用于教育与科研参考，不构成育种建议。
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<script>
+  const n1Input = document.getElementById('n1');
+  const n2Input = document.getElementById('n2');
+  const pathsInput = document.getElementById('paths');
+  const result = document.getElementById('result');
+  const errorBox = document.getElementById('error');
+
+  function calculate() {
+    try {
+      const n1 = parseInt(n1Input.value, 10);
+      const n2 = parseInt(n2Input.value, 10);
+      const paths = parseInt(pathsInput.value, 10);
+      if (Number.isNaN(n1) || Number.isNaN(n2) || Number.isNaN(paths)) {
+        throw new Error('输入有误，请填写数字。');
+      }
+      if (n1 < 0 || n2 < 0 || n1 > 12 || n2 > 12) {
+        throw new Error('世代数需在 0–12 之间。');
+      }
+      if (paths < 1 || paths > 8) {
+        throw new Error('路径数需在 1–8 之间。');
+      }
+      const f = paths * Math.pow(0.5, n1 + n2 + 1);
+      const pct = (f * 100).toFixed(2).replace(/\.?0+$/, '');
+      document.getElementById('f-value').textContent = `${pct}%`;
+      let note = '系谱内无共同祖先，理论近交系数为 0。';
+      if (f >= 0.25) note = '血缘很近（相当于亲子/全同胞水平），育种中需审慎评估。';
+      else if (f >= 0.125) note = '血缘较近（相当于半同胞/叔侄水平）。';
+      else if (f >= 0.0625) note = '血缘中等（相当于表兄妹水平）。';
+      else if (f > 0) note = '血缘较远，近交程度较低。';
+      document.getElementById('f-note').textContent = note;
+      result.classList.remove('hidden');
+      errorBox.classList.add('hidden');
+    } catch (error) {
+      errorBox.textContent = error instanceof Error ? error.message : '输入有误，请检查后重试。';
+      errorBox.classList.remove('hidden');
+      result.classList.add('hidden');
+    }
+  }
+
+  document.getElementById('calculate').addEventListener('click', calculate);
+  document.querySelectorAll('.preset-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      n1Input.value = btn.dataset.n1;
+      n2Input.value = btn.dataset.n2;
+      pathsInput.value = btn.dataset.paths;
+      calculate();
+    });
+  });
+
+  calculate();
+</script>
