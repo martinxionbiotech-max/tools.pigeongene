@@ -89,6 +89,10 @@ const jsonLd = [
                 <p id="gene-associations" class="mt-1 text-gray-700"></p>
               </div>
               <div>
+                <p class="font-semibold text-gray-900">证据等级</p>
+                <p class="mt-1 text-gray-700"><span id="gene-evidence" class="rounded bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700"></span><span class="ml-2 text-xs text-gray-500">（B=赛鸽专属统计关联 / C=初步鸽类研究 / D=仅多态性鉴定）</span></p>
+              </div>
+              <div>
                 <p class="font-semibold text-gray-900">遗传标记</p>
                 <p id="gene-marker" class="mt-1 text-gray-700"></p>
               </div>
@@ -146,6 +150,7 @@ const jsonLd = [
       document.getElementById('gene-en').textContent = gene.en;
       document.getElementById('gene-function').textContent = gene.function;
       document.getElementById('gene-associations').textContent = gene.associations;
+      document.getElementById('gene-evidence').textContent = gene.evidence;
       document.getElementById('gene-marker').textContent = gene.marker;
       document.getElementById('gene-references').textContent = gene.references;
       document.getElementById('gene-related').textContent = gene.related.join('、');
