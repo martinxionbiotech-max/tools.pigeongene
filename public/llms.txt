@@ -9,7 +9,6 @@ PigeonGene Tools（tool.senopigeon.com）是 PigeonGene 生态的在线工具站
 ## 工具索引
 
 - [基因查询](https://tool.senopigeon.com/gene-lookup/)：查询 8 大核心基因位点的功能、关联与参考文献
-- [遗传计算器](https://tool.senopigeon.com/genetics-calculator/)：单基因位点孟德尔遗传（Punnett 方格）
 - [育种计算器](https://tool.senopigeon.com/breeding-calculator/)：双基因位点自由组合遗传
 - [亲缘计算器](https://tool.senopigeon.com/parentage-calculator/)：STR 标记亲缘相容性分析
 - [近交系数计算器](https://tool.senopigeon.com/inbreeding-calculator/)：Wright 路径法计算理论近交系数（F）
